@@ -1,14 +1,34 @@
-﻿using System;
-
-namespace QueueMonitoring.Console
+﻿namespace QueueMonitoring.Console
 {
-    using Console = System.Console;
+    using System;
+    using System.Reactive.Linq;
+    using System.Xml.Linq;
+    using IntegrationTests;
+    using Library;
 
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            Console.WriteLine("Hello world!");
+            var queueRepository = new QueueRepository();
+
+            new MsmqFixture().CreateQueuesAndMessages();
+
+            var observable = queueRepository.GetQueuesWithGrouping("coon_and_friends").ToObservable();
+
+            observable.Subscribe(ProcessMQueue);
+
+            Console.ReadKey();
+        }
+
+        private static void ProcessMQueue(MQueue mQueue)
+        {
+            Console.WriteLine($"{mQueue.Name,-25} Messages: {mQueue.MessagesCount}");
+            foreach (var message in mQueue.Messages)
+            {
+                Console.WriteLine($"    {XElement.Parse(message.Body)}");
+
+            }
         }
     }
 }
