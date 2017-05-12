@@ -34,12 +34,14 @@ namespace QueueMonitoring.IntegrationTests
 
             }
             SendMessage(Queues[QueueNames[0]], "Fear not everyone! Coon is here to save the day.");
-            SendMessage(Queues[QueueNames[0]], "Dude, seriously? I'm gonna kick the shit out of you if you don't stop!");
+            SendMessage(Queues[QueueNames[0]], "Dude, seriously?");
             SendMessage(Queues[QueueNames[0]], "South Park is safe. Until next time.");
             SendMessage(Queues[QueueNames[1]], "Shabladoo!");
+
+            MoveFirstMessageToPoison(Queues[QueueNames[0]]);
         }
 
-        private void SendMessage(MessageQueue queue, string body)
+        private static void SendMessage(MessageQueue queue, string body)
         {
             queue.Send(body, MessageQueueTransactionType.Single);
         }
@@ -64,18 +66,17 @@ namespace QueueMonitoring.IntegrationTests
             queue.Purge();
         }
 
-        public void MoveFirstMessageToPoison(string queueName)
+        private static void MoveFirstMessageToPoison(MessageQueue q)
         {
-            var queue = Queues[queueName];
-
-            var message = queue.Peek();
-            queue.MoveToSubQueue("poison", message);
+            var message = q.Peek();
+            q.MoveToSubQueue("poison", message);
         }
 
         public void Dispose()
         {
             foreach (var queue in Queues.Values)
             {
+                ClearQueue(new MessageQueue($".\\{queue.QueueName};poison"));
                 ClearQueue(queue);
             }
 

@@ -37,7 +37,7 @@
             var queue = GetQueues().Single(x => x.Name == _fixture.QueueNames[0]);
 
             queue.MessagesCount.Should().Be(3);
-            queue.Messages[2].Body.Should().Contain("South Park is safe. Until next time.");
+            queue.Messages[2].Body.Should().NotBeEmpty();
         }
 
         [Fact]
@@ -51,14 +51,18 @@
         [Fact]
         public void ShouldShowPoisonMessages()
         {
-            _fixture.MoveFirstMessageToPoison(_fixture.QueueNames[0]);
+            var queue = GetQueues().Single(x => x.Name == _fixture.QueueNames[0]);
+
+            queue.MessagesCount.Should().Be(3);
+            queue.Messages.Where(x => x.SubType == null).Should().HaveCount(2);
+            queue.Messages.Where(x => x.SubType == MqSubType.Poison).Should().HaveCount(1);
         }
 
-        private IEnumerable<MQueue> GetQueues()
+        private IEnumerable<MQueue> GetQueues(bool includeSubQueues = true)
         {
             var repository = new QueueRepository();
 
-            return repository.GetQueuesWithGrouping(_fixture.Grouping);
+            return repository.GetQueuesWithGrouping(_fixture.Grouping, includeSubQueues);
         }
     }
 }

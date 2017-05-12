@@ -11,24 +11,38 @@
         private const string PrivateQueueIdentifier = "private$\\";
         private string _grouping;
 
-        public IEnumerable<MQueue> GetQueuesWithGrouping(string grouping)
+        public IEnumerable<MQueue> GetQueuesWithGrouping(string grouping, bool includeSubQueues = true)
         {
             _grouping = grouping;
 
             var queues = MessageQueue.GetPrivateQueuesByMachine(".").Where(x => x.QueueName.StartsWith(PrivateQueueIdentifier + grouping));
 
-            return queues.Select(CreateMQueues);
+            return queues.Select(x => CreateMQueues(x, includeSubQueues));
         }
 
-        private MQueue CreateMQueues(MessageQueue q)
+        private MQueue CreateMQueues(MessageQueue q, bool includeSubQueues)
         {
-            var messages = GetMessage(q);
+            var messages = GetMessages(q, includeSubQueues);
             return new MQueue(
                 q.QueueName.Replace($"{PrivateQueueIdentifier}{_grouping}.", "").Trim(),
                 messages);
         }
 
-        private static List<MqMessage> GetMessage(MessageQueue q)
+        private static List<MqMessage> GetMessages(MessageQueue q, bool includeSubQueues)
+        {
+            var list = GetMessageInternal(q);
+
+            return includeSubQueues ? list.Union(AddSubqueue(q, MqSubType.Poison)).ToList() : list.ToList();
+        }
+
+        private static IEnumerable<MqMessage> AddSubqueue(MessageQueue q, MqSubType? subType = null)
+        {
+            var path = $".\\{q.QueueName};{subType.ToString().ToLower()}";
+            var subq = new MessageQueue(path);
+            return GetMessageInternal(subq, subType);
+        }
+
+        private static IEnumerable<MqMessage> GetMessageInternal(MessageQueue q, MqSubType? subType = null)
         {
             var enumerator = q.GetMessageEnumerator2();
 
@@ -39,18 +53,17 @@
                 messages.Add(enumerator.Current);
             }
 
-            return messages.Select(CreateMqMessages).ToList();
+            return messages.Select(x => CreateMqMessages(x, subType));
         }
 
-        private static MqMessage CreateMqMessages(Message m)
+        private static MqMessage CreateMqMessages(Message m, MqSubType? subType)
         {
             string messageBody;
             using (var reader = new StreamReader(m.BodyStream))
             {
-                messageBody = reader.ReadToEnd();   
+                messageBody = reader.ReadToEnd();
             }
-
-            return new MqMessage(messageBody);
+            return new MqMessage(messageBody, subType);
         }
     }
 
@@ -69,14 +82,15 @@
 
     public class MqMessage
     {
-        public MqMessage(string body)
+        public MqMessage(string body, MqSubType? subType)
         {
+            SubType = subType;
             Body = body;
         }
 
         public string Body { get; }
 
-        public MqSubType? SubType { get; private set; }
+        public MqSubType? SubType { get; }
     }
 
     public enum MqSubType
