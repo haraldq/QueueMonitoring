@@ -1,9 +1,8 @@
-﻿namespace QueueMonitoring.IntegrationTests
+﻿namespace QueueMonitoring.Library
 {
     using System;
     using System.ComponentModel;
     using System.Messaging;
-    using System.Runtime.InteropServices;
     using System.Transactions;
 
     //From: https://github.com/ayende/rhino-esb/blob/master/Rhino.ServiceBus/Msmq/MsmqExtensions.cs

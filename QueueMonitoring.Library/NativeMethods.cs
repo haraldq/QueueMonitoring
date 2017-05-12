@@ -1,4 +1,4 @@
-﻿namespace QueueMonitoring.IntegrationTests
+﻿namespace QueueMonitoring.Library
 {
     using System;
     using System.Runtime.InteropServices;

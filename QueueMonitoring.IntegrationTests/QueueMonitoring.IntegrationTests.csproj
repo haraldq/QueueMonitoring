@@ -60,9 +60,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MsmqExtensions.cs" />
     <Compile Include="MsmqFixture.cs" />
-    <Compile Include="NativeMethods.cs" />
     <Compile Include="QueueRepositoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

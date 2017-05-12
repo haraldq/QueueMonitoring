@@ -3,12 +3,7 @@ namespace QueueMonitoring.IntegrationTests
     using System;
     using System.Collections.Generic;
     using System.Messaging;
-
-
-    using System.ComponentModel;
-
-    using System.Runtime.InteropServices;
-    using System.Transactions;
+    using Library;
 
 
     public class MsmqFixture : IDisposable
