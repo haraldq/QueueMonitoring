@@ -75,5 +75,13 @@
         }
 
         public string Body { get; }
+
+        public MqSubType? SubType { get; private set; }
+    }
+
+    public enum MqSubType
+    {
+        Retry,
+        Poison
     }
 }

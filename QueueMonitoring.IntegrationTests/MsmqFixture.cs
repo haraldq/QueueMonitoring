@@ -4,6 +4,13 @@ namespace QueueMonitoring.IntegrationTests
     using System.Collections.Generic;
     using System.Messaging;
 
+
+    using System.ComponentModel;
+
+    using System.Runtime.InteropServices;
+    using System.Transactions;
+
+
     public class MsmqFixture : IDisposable
     {
         public string Grouping = "coon_and_friends";
@@ -21,24 +28,35 @@ namespace QueueMonitoring.IntegrationTests
             {
                 var privateQueuePath = $".\\Private$\\{Grouping}.{queueName}";
 
-                MessageQueue queue;
-
-                if (MessageQueue.Exists(privateQueuePath))
-                {
-                    queue = new MessageQueue(privateQueuePath);
-
-                    ClearQueue(queue);
-                }
-                else queue = MessageQueue.Create(privateQueuePath);
+                var queue = GetFreshQueue(privateQueuePath);
 
                 Queues[queueName] = queue;
 
             }
+            SendMessage(Queues[QueueNames[0]], "Fear not everyone! Coon is here to save the day.");
+            SendMessage(Queues[QueueNames[0]], "Dude, seriously? I'm gonna kick the shit out of you if you don't stop!");
+            SendMessage(Queues[QueueNames[0]], "South Park is safe. Until next time.");
+            SendMessage(Queues[QueueNames[1]], "Shabladoo!");
+        }
 
-            Queues[QueueNames[0]].Send("Fear not everyone! Coon is here to save the day.");
-            Queues[QueueNames[0]].Send("Dude, seriously? I'm gonna kick the shit out of you if you don't stop!");
-            Queues[QueueNames[0]].Send("South Park is safe. Until next time.");
-            Queues[QueueNames[1]].Send("Shabladoo!");
+        private void SendMessage(MessageQueue queue, string body)
+        {
+            queue.Send(body, MessageQueueTransactionType.Single);
+        }
+
+        private static MessageQueue GetFreshQueue(string privateQueuePath)
+        {
+            MessageQueue queue;
+
+            if (MessageQueue.Exists(privateQueuePath))
+            {
+                queue = new MessageQueue(privateQueuePath, QueueAccessMode.SendAndReceive);
+
+                ClearQueue(queue);
+            }
+            else queue = MessageQueue.Create(privateQueuePath, true);
+
+            return queue;
         }
 
         private static void ClearQueue(MessageQueue queue)
@@ -46,9 +64,17 @@ namespace QueueMonitoring.IntegrationTests
             queue.Purge();
         }
 
+        public void MoveFirstMessageToPoison(string queueName)
+        {
+            var queue = Queues[queueName];
+
+            var message = queue.Peek();
+            queue.MoveToSubQueue("poison", message);
+        }
+
         public void Dispose()
         {
-            foreach (var queue in Queues.Values)   
+            foreach (var queue in Queues.Values)
             {
                 ClearQueue(queue);
             }
