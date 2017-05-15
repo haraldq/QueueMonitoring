@@ -3,15 +3,21 @@ namespace QueueMonitoring.IntegrationTests
     using System;
     using System.Collections.Generic;
     using System.Messaging;
+
+
+    using System.ComponentModel;
+
+    using System.Runtime.InteropServices;
+    using System.Transactions;
     using Library;
 
 
     public class MsmqFixture : IDisposable
     {
-        public string Grouping = "coon_and_friends";
+        public string Grouping = "coon_and_friends_members";
         public string[] QueueNames = { "the_coon", "mint_berry_crunch", "mosquito", "mysterion" };
         private static readonly Dictionary<string, MessageQueue> Queues = new Dictionary<string, MessageQueue>();
-
+        
         public MsmqFixture()
         {
             CreateQueuesAndMessages();
@@ -19,19 +25,32 @@ namespace QueueMonitoring.IntegrationTests
 
         public void CreateQueuesAndMessages()
         {
-            foreach (var queueName in QueueNames)
-            {
-                var privateQueuePath = $".\\Private$\\{Grouping}.{queueName}";
+            var privateQueuePath = ".\\Private$";
+            //foreach (var queueName in QueueNames)
+            //{
+            //    var privateQueuePath = $".\\Private$\\{Grouping}.{queueName}";
 
-                var queue = GetFreshQueue(privateQueuePath);
+            //    var queue = GetFreshQueue(privateQueuePath);
 
-                Queues[queueName] = queue;
+            //    Queues[queueName] = queue;
 
-            }
-            SendMessage(Queues[QueueNames[0]], "Fear not everyone! Coon is here to save the day.");
-            SendMessage(Queues[QueueNames[0]], "Dude, seriously?");
-            SendMessage(Queues[QueueNames[0]], "South Park is safe. Until next time.");
-            SendMessage(Queues[QueueNames[1]], "Shabladoo!");
+            //}
+
+
+            Queues["the_coon"] = GetFreshQueue($"{privateQueuePath}\\coon_and_friends_members.the_coon");
+            Queues["mint_berry_crunch"] = GetFreshQueue($"{privateQueuePath}\\coon_and_friends_members.mint_berry_crunch");
+            Queues["mosquito"] = GetFreshQueue($"{privateQueuePath}\\coon_and_friends_members.mosquito");
+            Queues["mysterion"] = GetFreshQueue($"{privateQueuePath}\\coon_and_friends_members.mysterion");
+            Queues["professor_chaos"] = GetFreshQueue($"{privateQueuePath}\\coon_and_friends_enemies.professor_chaos");
+            Queues["cthulhu"] = GetFreshQueue($"{privateQueuePath}\\coon_and_friends_enemies.cthulhu");
+            Queues["captain_hindsight"] = GetFreshQueue($"{privateQueuePath}\\coon_and_friends_enemies.captain_hindsight");
+
+
+            SendMessage(Queues["the_coon"], "Fear not everyone! Coon is here to save the day.");
+            SendMessage(Queues["the_coon"], "Dude, seriously?");
+            SendMessage(Queues["the_coon"], "South Park is safe. Until next time.");
+            SendMessage(Queues["mint_berry_crunch"], "Shabladoo!");
+            SendMessage(Queues["captain_hindsight"], "My work here is done! I'm off to find others in need!");
 
             MoveFirstMessageToPoison(Queues[QueueNames[0]]);
         }

@@ -5,26 +5,61 @@
     using System.IO;
     using System.Linq;
     using System.Messaging;
+    using System.Text.RegularExpressions;
 
     public class QueueRepository
     {
         private const string PrivateQueueIdentifier = "private$\\";
-        private string _grouping;
+        private readonly string _groupingDelimiter;
+        private readonly string _groupingFilter;
 
-        public IEnumerable<MQueue> GetQueuesWithGrouping(string grouping, bool includeSubQueues = true)
+        public QueueRepository(string groupingDelimiter = ".", string groupingFilter = "*")
         {
-            _grouping = grouping;
-
-            var queues = MessageQueue.GetPrivateQueuesByMachine(".").Where(x => x.QueueName.StartsWith(PrivateQueueIdentifier + grouping));
-
-            return queues.Select(x => CreateMQueues(x, includeSubQueues));
+            _groupingDelimiter = groupingDelimiter;
+            _groupingFilter = groupingFilter;
         }
 
-        private MQueue CreateMQueues(MessageQueue q, bool includeSubQueues)
+        public IEnumerable<MqGrouping> GetGroupings(bool includeSubQueues = true)
+        {
+            var queues = MessageQueue.GetPrivateQueuesByMachine(".");
+
+            foreach (var group in queues.GroupBy(x => GetGroupingName(x.QueueName)))
+            {
+                var name = group.Key;
+
+                if (string.IsNullOrEmpty(name) || ShouldBeFilteredOut(name))
+                    continue;
+
+                yield return new MqGrouping(group.Select(x => GetMQueues(x, includeSubQueues, name)).ToList(), name);
+            }
+        }
+
+        private bool ShouldBeFilteredOut(string group)
+        {
+            bool success = Regex.IsMatch(group, _groupingFilter);
+            if (success)
+                return false;
+
+            return true;
+        }
+
+
+        private string GetGroupingName(string queueName)
+        {
+            if (!queueName.Contains(_groupingDelimiter))
+                return null;
+
+            queueName = queueName.Replace(PrivateQueueIdentifier, "").Trim();
+
+            var indexOfGroupingDelimiter = queueName.IndexOf(_groupingDelimiter, StringComparison.Ordinal);
+
+            return queueName.Substring(0, indexOfGroupingDelimiter);
+        }
+        private static MQueue GetMQueues(MessageQueue q, bool includeSubQueues, string group)
         {
             var messages = GetMessages(q, includeSubQueues);
             return new MQueue(
-                q.QueueName.Replace($"{PrivateQueueIdentifier}{_grouping}.", "").Trim(),
+                q.QueueName.Replace($"{PrivateQueueIdentifier}{group}.", "").Trim(),
                 messages);
         }
 
@@ -49,9 +84,7 @@
             var messages = new List<Message>();
 
             while (enumerator.MoveNext())
-            {
                 messages.Add(enumerator.Current);
-            }
 
             return messages.Select(x => CreateMqMessages(x, subType));
         }
@@ -65,6 +98,20 @@
             }
             return new MqMessage(messageBody, subType);
         }
+    }
+
+    public class MqGrouping
+    {
+        public MqGrouping(List<MQueue> queues, string name)
+        {
+            Queues = queues;
+            Name = name;
+        }
+
+        public List<MQueue> Queues { get; }
+
+        public int MessageCount => Queues.Sum(x => x.MessagesCount);
+        public string Name { get; }
     }
 
     public class MQueue
