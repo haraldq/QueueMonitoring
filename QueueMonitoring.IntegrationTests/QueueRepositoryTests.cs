@@ -1,7 +1,9 @@
 ﻿namespace QueueMonitoring.IntegrationTests
 {
-    using System.Collections.Generic;
+    using System;
     using System.Linq;
+    using System.Messaging;
+    using System.Reflection;
     using FluentAssertions;
     using Library;
     using Xunit;
@@ -33,7 +35,7 @@
         }
 
         [Fact]
-        public void GetGroupingShouldGetMessageBody()   
+        public void GetGroupingShouldGetMessageBody()
         {
             var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
 
@@ -69,7 +71,36 @@
             groupings.Should().HaveCount(2);
             groupings.Single(x => x.Name == "coon_and_friends_members").Should().NotBeNull();
             groupings.Single(x => x.Name == "coon_and_friends_enemies").Should().NotBeNull();
+        }
 
+        [Fact]
+        public void Bug_MessageQueueNameTooLong()
+        {
+            var privateQueueSuffix = ".\\Private$";
+            var name = "queue_with_a_name_that_is_too_long.when_doing_the_format_name_getter_method_in_queue_api_which_makes_the_whole_prog_break";
+            var path = $"{privateQueueSuffix}\\{name}";
+
+            try
+            {
+                if (MessageQueue.Exists(path))
+                    MessageQueue.Delete(path);
+                MessageQueue.Create(path, true);
+
+                var q = new MessageQueue(path + ";poison");
+
+                var fn = typeof(MessageQueue).GetField("formatName", BindingFlags.NonPublic | BindingFlags.Instance);
+                var value = fn.GetValue(q);
+                fn.SetValue(q, path);
+                
+                var enumerator = q.GetMessageEnumerator2();
+                while (enumerator.MoveNext()) { }
+
+                //var groupings = new QueueRepository(groupingFilter: "queue_with_a_name_that_is_too_long").GetGroupings().ToList();
+            }
+            finally
+            {
+                MessageQueue.Delete(path);
+            }
         }
 
         private static MqGrouping GetCoonMembersGrouping(bool includeSubQueues = true)

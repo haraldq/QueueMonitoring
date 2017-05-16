@@ -21,14 +21,14 @@
         {
             var repository = new QueueRepository();
             
-            var observable = repository.GetGrouping("coon_and_friends").Queues.ToObservable();
+            var observable = repository.GetGroupings().ToObservable();
 
             observable.Subscribe(ProcessMQueue);
         }
 
-        private void ProcessMQueue(MQueue mQueue)
+        private void ProcessMQueue(MqGrouping grouping)
         {
-            QueueTreeView.Items.Add(new TreeViewItem {Header = mQueue.Name});
+            QueueTreeView.Items.Add(new TreeViewItem {Header = grouping.Name});
         }
     }
 }

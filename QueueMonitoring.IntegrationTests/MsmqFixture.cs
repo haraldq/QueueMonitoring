@@ -26,16 +26,6 @@ namespace QueueMonitoring.IntegrationTests
         public void CreateQueuesAndMessages()
         {
             var privateQueuePath = ".\\Private$";
-            //foreach (var queueName in QueueNames)
-            //{
-            //    var privateQueuePath = $".\\Private$\\{Grouping}.{queueName}";
-
-            //    var queue = GetFreshQueue(privateQueuePath);
-
-            //    Queues[queueName] = queue;
-
-            //}
-
 
             Queues["the_coon"] = GetFreshQueue($"{privateQueuePath}\\coon_and_friends_members.the_coon");
             Queues["mint_berry_crunch"] = GetFreshQueue($"{privateQueuePath}\\coon_and_friends_members.mint_berry_crunch");
