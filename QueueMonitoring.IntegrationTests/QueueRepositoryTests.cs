@@ -1,6 +1,8 @@
 ﻿namespace QueueMonitoring.IntegrationTests
 {
     using System;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Messaging;
     using System.Reflection;
@@ -86,22 +88,16 @@
                     MessageQueue.Delete(path);
                 MessageQueue.Create(path, true);
 
-                var q = new MessageQueue(path + ";poison");
+                var groupings = new QueueRepository(groupingFilter: "queue_with_a_name_that_is_too_long").GetGroupings().ToList();
 
-                var fn = typeof(MessageQueue).GetField("formatName", BindingFlags.NonPublic | BindingFlags.Instance);
-                var value = fn.GetValue(q);
-                fn.SetValue(q, path);
-                
-                var enumerator = q.GetMessageEnumerator2();
-                while (enumerator.MoveNext()) { }
-
-                //var groupings = new QueueRepository(groupingFilter: "queue_with_a_name_that_is_too_long").GetGroupings().ToList();
+                groupings.Should().HaveCount(1);
             }
             finally
             {
                 MessageQueue.Delete(path);
             }
         }
+
 
         private static MqGrouping GetCoonMembersGrouping(bool includeSubQueues = true)
         {

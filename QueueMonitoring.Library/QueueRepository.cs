@@ -5,6 +5,7 @@
     using System.IO;
     using System.Linq;
     using System.Messaging;
+    using System.Reflection;
     using System.Text.RegularExpressions;
 
     public class QueueRepository
@@ -13,7 +14,7 @@
         private readonly string _groupingDelimiter;
         private readonly string _groupingFilter;
 
-        public QueueRepository(string groupingDelimiter = ".", string groupingFilter = "*")
+        public QueueRepository(string groupingDelimiter = ".", string groupingFilter = "\\d*")
         {
             _groupingDelimiter = groupingDelimiter;
             _groupingFilter = groupingFilter;
@@ -74,7 +75,18 @@
         {
             var path = $".\\{q.QueueName};{subType.ToString().ToLower()}";
             var subq = new MessageQueue(path);
+
+            HackFixMsmqFormatNameBug(path, subq);
+
             return GetMessageInternal(subq, subType);
+        }
+
+        private static void HackFixMsmqFormatNameBug(string path, MessageQueue subq)
+        {
+            var fn = typeof(MessageQueue).GetField("formatName", BindingFlags.NonPublic | BindingFlags.Instance);
+            var formatName = "DIRECT=OS:" + path;
+            if (fn != null)
+                fn.SetValue(subq, formatName);
         }
 
         private static IEnumerable<MqMessage> GetMessageInternal(MessageQueue q, MqSubType? subType = null)
