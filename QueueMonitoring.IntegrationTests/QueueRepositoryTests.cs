@@ -8,6 +8,7 @@
     using System.Reflection;
     using FluentAssertions;
     using Library;
+    using Library.Queues;
     using Xunit;
 
     public class QueueRepositoryTests : IClassFixture<MsmqFixture>
@@ -24,10 +25,10 @@
         {
             var mQueues = GetCoonMembersGrouping().Queues;
             var queue = mQueues.Single(x => x.Name == _fixture.QueueNames[0]);
-            queue.MessagesCount.Should().Be(3);
+            queue.MessagesCount.Should().Be(2);
 
             queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
-            queue.MessagesCount.Should().Be(3);
+            queue.MessagesCount.Should().Be(2);
         }
 
         [Fact]
@@ -41,8 +42,8 @@
         {
             var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
 
-            queue.MessagesCount.Should().Be(3);
-            queue.Messages[2].Body.Should().NotBeEmpty();
+            queue.MessagesCount.Should().Be(2);
+            queue.Messages[1].Body.Should().Contain("South Park is safe. Until next time.");
         }
 
         [Fact]
@@ -50,7 +51,7 @@
         {
             var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
 
-            queue.MessagesCount.Should().Be(3);
+            queue.MessagesCount.Should().Be(2);
         }
 
         [Fact]
@@ -58,9 +59,8 @@
         {
             var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
 
-            queue.MessagesCount.Should().Be(3);
-            queue.Messages.Where(x => x.SubType == null).Should().HaveCount(2);
-            queue.Messages.Where(x => x.SubType == MqSubType.Poison).Should().HaveCount(1);
+            queue.MessagesCount.Should().Be(2);
+            ((BaseQueue)queue).PoisonQueue.MessagesCount.Should().Be(1);
         }
 
         [Fact]
@@ -99,11 +99,11 @@
         }
 
 
-        private static MqGrouping GetCoonMembersGrouping(bool includeSubQueues = true)
+        private static MqGrouping GetCoonMembersGrouping()
         {
             var repository = new QueueRepository(groupingFilter: "coon_and_friends_members");
 
-            return repository.GetGroupings(includeSubQueues).Single();
+            return repository.GetGroupings().Single();
         }
     }
 }

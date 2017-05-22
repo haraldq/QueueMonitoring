@@ -7,6 +7,7 @@
     using System.Messaging;
     using System.Reflection;
     using System.Text.RegularExpressions;
+    using Queues;
 
     public class QueueRepository
     {
@@ -20,7 +21,7 @@
             _groupingFilter = groupingFilter;
         }
 
-        public IEnumerable<MqGrouping> GetGroupings(bool includeSubQueues = true)
+        public IEnumerable<MqGrouping> GetGroupings()
         {
             var queues = MessageQueue.GetPrivateQueuesByMachine(".");
 
@@ -31,7 +32,7 @@
                 if (string.IsNullOrEmpty(name) || ShouldBeFilteredOut(name))
                     continue;
 
-                yield return new MqGrouping(group.Select(x => GetMQueues(x, includeSubQueues, name)).ToList(), name);
+                yield return new MqGrouping(group.Select(x => GetMQueues(x, name)).ToList(), name);
             }
         }
 
@@ -56,29 +57,30 @@
 
             return queueName.Substring(0, indexOfGroupingDelimiter);
         }
-        private static MQueue GetMQueues(MessageQueue q, bool includeSubQueues, string group)
+        private static MQueue GetMQueues(MessageQueue q, string group)
         {
-            var messages = GetMessages(q, includeSubQueues);
-            return new MQueue(
-                q.QueueName.Replace($"{PrivateQueueIdentifier}{group}.", "").Trim(),
-                messages);
+            var name = q.QueueName.Replace($"{PrivateQueueIdentifier}{group}.", "").Trim();
+            var messages = GetMessages(q);
+            var poisonQueue = GetSubQueue(q, "poison");
+
+            var baseQueue = new BaseQueue(name, messages, poisonQueue);
+
+            return baseQueue;
         }
 
-        private static List<MqMessage> GetMessages(MessageQueue q, bool includeSubQueues)
+        private static SubQueue GetSubQueue(MessageQueue q, string subqueue)
         {
-            var list = GetMessageInternal(q);
-
-            return includeSubQueues ? list.Union(AddSubqueue(q, MqSubType.Poison)).ToList() : list.ToList();
-        }
-
-        private static IEnumerable<MqMessage> AddSubqueue(MessageQueue q, MqSubType? subType = null)
-        {
-            var path = $".\\{q.QueueName};{subType.ToString().ToLower()}";
+            var path = $".\\{q.QueueName};{subqueue}";
             var subq = new MessageQueue(path);
-
             HackFixMsmqFormatNameBug(path, subq);
+            var messages = GetMessageInternal(subq).ToList();
 
-            return GetMessageInternal(subq, subType);
+            return new SubQueue(path, messages);
+        }
+
+        private static List<MqMessage> GetMessages(MessageQueue q)
+        {
+            return GetMessageInternal(q).ToList();
         }
 
         private static void HackFixMsmqFormatNameBug(string path, MessageQueue subq)
@@ -89,7 +91,7 @@
                 fn.SetValue(subq, formatName);
         }
 
-        private static IEnumerable<MqMessage> GetMessageInternal(MessageQueue q, MqSubType? subType = null)
+        private static IEnumerable<MqMessage> GetMessageInternal(MessageQueue q)
         {
             var enumerator = q.GetMessageEnumerator2();
 
@@ -98,63 +100,17 @@
             while (enumerator.MoveNext())
                 messages.Add(enumerator.Current);
 
-            return messages.Select(x => CreateMqMessages(x, subType));
+            return messages.Select(CreateMqMessages);
         }
 
-        private static MqMessage CreateMqMessages(Message m, MqSubType? subType)
+        private static MqMessage CreateMqMessages(Message m)
         {
             string messageBody;
             using (var reader = new StreamReader(m.BodyStream))
             {
                 messageBody = reader.ReadToEnd();
             }
-            return new MqMessage(messageBody, subType);
+            return new MqMessage(messageBody);
         }
-    }
-
-    public class MqGrouping
-    {
-        public MqGrouping(List<MQueue> queues, string name)
-        {
-            Queues = queues;
-            Name = name;
-        }
-
-        public List<MQueue> Queues { get; }
-
-        public int MessageCount => Queues.Sum(x => x.MessagesCount);
-        public string Name { get; }
-    }
-
-    public class MQueue
-    {
-        public MQueue(string name, List<MqMessage> messages)
-        {
-            Name = name;
-            Messages = messages;
-        }
-
-        public string Name { get; }
-        public List<MqMessage> Messages { get; }
-        public int MessagesCount => Messages.Count;
-    }
-
-    public class MqMessage
-    {
-        public MqMessage(string body, MqSubType? subType)
-        {
-            SubType = subType;
-            Body = body;
-        }
-
-        public string Body { get; }
-
-        public MqSubType? SubType { get; }
-    }
-
-    public enum MqSubType
-    {
-        Retry,
-        Poison
     }
 }

@@ -42,10 +42,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MqGrouping.cs" />
+    <Compile Include="Queues\BaseQueue.cs" />
+    <Compile Include="MqMessage.cs" />
+    <Compile Include="Queues\MQueue.cs" />
     <Compile Include="MsmqExtensions.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="QueueRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Queues\SubQueue.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

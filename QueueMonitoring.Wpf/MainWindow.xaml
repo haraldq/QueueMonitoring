@@ -6,8 +6,10 @@
         xmlns:local="clr-namespace:QueueMonitoring.Wpf"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        <TreeView Name="QueueTreeView">
-        </TreeView>
-    </Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid>
+            <TreeView Name="QueueTreeView">
+            </TreeView>
+        </Grid>
+    </ScrollViewer>
 </Window>
