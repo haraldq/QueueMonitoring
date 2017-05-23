@@ -7,14 +7,14 @@
     using System.Messaging;
     using System.Reflection;
     using System.Text.RegularExpressions;
-    using Queues;
+    using Queues;   
 
     public class QueueRepository
     {
         private const string PrivateQueueIdentifier = "private$\\";
         private readonly string _groupingDelimiter;
         private readonly string _groupingFilter;
-
+                    
         public QueueRepository(string groupingDelimiter = ".", string groupingFilter = "\\d*")
         {
             _groupingDelimiter = groupingDelimiter;
@@ -38,14 +38,9 @@
 
         private bool ShouldBeFilteredOut(string group)
         {
-            bool success = Regex.IsMatch(group, _groupingFilter);
-            if (success)
-                return false;
-
-            return true;
+            return !Regex.IsMatch(group, _groupingFilter);
         }
-
-
+        
         private string GetGroupingName(string queueName)
         {
             if (!queueName.Contains(_groupingDelimiter))
@@ -60,8 +55,8 @@
         private static MQueue GetMQueues(MessageQueue q, string group)
         {
             var name = q.QueueName.Replace($"{PrivateQueueIdentifier}{group}.", "").Trim();
-            var messages = GetMessages(q);
-            var poisonQueue = GetSubQueue(q, "poison");
+            var messages = GetMessageInternal(q).ToList();
+            var poisonQueue =  GetSubQueue(q, "poison");
 
             var baseQueue = new BaseQueue(name, messages, poisonQueue);
 
@@ -77,12 +72,7 @@
 
             return new SubQueue(path, messages);
         }
-
-        private static List<MqMessage> GetMessages(MessageQueue q)
-        {
-            return GetMessageInternal(q).ToList();
-        }
-
+        
         private static void HackFixMsmqFormatNameBug(string path, MessageQueue subq)
         {
             var fn = typeof(MessageQueue).GetField("formatName", BindingFlags.NonPublic | BindingFlags.Instance);
