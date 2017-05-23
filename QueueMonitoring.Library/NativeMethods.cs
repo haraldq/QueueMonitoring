@@ -53,12 +53,12 @@
             public IntPtr status;
         }
 
-        public static uint GetCount(this MessageQueue queue)
+        public static int GetCount(this MessageQueue queue)
         {
             return GetCount(".\\"+queue.QueueName);
         }
 
-        private static uint GetCount(string path)
+        private static int GetCount(string path)
         {
             if (!MessageQueue.Exists(path))
             {
@@ -90,7 +90,7 @@
                 }
                 else
                 {
-                    return propVar.ulVal;
+                    return (int)propVar.ulVal;
                 }
             }
             finally

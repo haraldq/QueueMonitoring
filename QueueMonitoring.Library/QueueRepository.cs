@@ -7,7 +7,7 @@
     using System.Messaging;
     using System.Reflection;
     using System.Text.RegularExpressions;
-    using Queues;   
+    using Queues;
 
     public class QueueRepository
     {
@@ -41,7 +41,7 @@
         {
             return !Regex.IsMatch(group, _groupingFilter);
         }
-        
+
         private string GetGroupingName(string queueName)
         {
             if (!queueName.Contains(_groupingDelimiter))
@@ -56,21 +56,12 @@
         private MQueue GetMQueues(MessageQueue q, string group)
         {
             var name = q.QueueName.Replace($"{PrivateQueueIdentifier}{group}.", "").Trim();
-            //var poisonQueue =  GetSubQueue(q, "poison");
+            var internalName = q.QueueName;
 
-            var baseQueue = new BaseQueue(name, _messageCountService.GetCount(q));
+            var baseQueue = new MQueue(name, internalName, _messageCountService.GetCount(q));
 
             return baseQueue;
         }
-
-        //private SubQueue GetSubQueue(MessageQueue q, string subqueue)
-        //{
-        //    var path = $".\\{q.QueueName};{subqueue}";
-        //    var subq = new MessageQueue(path);
-        //    HackFixMsmqFormatNameBug(path, subq);
-
-        //    return new SubQueue(path, _messageCountService.GetCount(subq));
-        //}
 
         private static void HackFixMsmqFormatNameBug(string path, MessageQueue subq)
         {
@@ -100,6 +91,18 @@
                 messageBody = reader.ReadToEnd();
             }
             return new MqMessage(messageBody);
+        }
+
+        public LoadedMqueue LoadQueue(MQueue mq)
+        {
+            var path = ".\\" + mq.InternalName;
+            var q = new MessageQueue(path);
+
+            var poisonPath = path + ";poison";
+            var pq = new MessageQueue(poisonPath);
+            HackFixMsmqFormatNameBug(poisonPath, pq);
+
+            return new LoadedMqueue(mq, GetMessageInternal(q), GetMessageInternal(pq));
         }
     }
 }

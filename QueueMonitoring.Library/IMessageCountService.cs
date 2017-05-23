@@ -6,7 +6,7 @@
 
     public interface IMessageCountService
     {
-        uint GetCount(MessageQueue queue);
+        int GetCount(MessageQueue queue);
     }
 
     public class MessageCountService : IMessageCountService
@@ -18,12 +18,12 @@
             _messageCount = messageCount;
         }
 
-        public uint GetCount(MessageQueue queue)
+        public int GetCount(MessageQueue queue)
         {
-            uint count = 0;
+            int count = 0;
             var countKvp = _messageCount.SingleOrDefault(x => x.Key.EndsWith(queue.QueueName));
             if (!countKvp.Equals(new KeyValuePair<string, int>()))
-                count = (uint) countKvp.Value;
+                count = (int) countKvp.Value;
             return count;
         }
     }

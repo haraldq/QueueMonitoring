@@ -7,6 +7,7 @@
     using System.Reactive.Linq;
     using System.Windows;
     using System.Windows.Controls;
+    using System.Windows.Input;
     using Library;
     using Library.Queues;
 
@@ -15,6 +16,8 @@
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        private QueueRepository _repository;
         public MainWindow()
         {
             InitializeComponent();
@@ -28,10 +31,10 @@
             _stopwatch = new Stopwatch();
             _stopwatch.Start();
 
-            var repository = new QueueRepository(new MessageCountService(PowerShellMethods.GetMsmqMessageCount()));
+            _repository = new QueueRepository(new MessageCountService(PowerShellMethods.GetMsmqMessageCount()));
 
-            var observable = repository.GetGroupings().ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
-            
+            var observable = _repository.GetGroupings().ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
+
             observable.Subscribe(ProcessMqGrouping, OnCompleted);
         }
 
@@ -43,7 +46,7 @@
 
         private void ProcessMqGrouping(MqGrouping grouping)
         {
-            var groupingNode = new TreeViewItem { Header = grouping.Name };
+            var groupingNode = new TreeViewItem { Header = grouping.Name + " " + grouping.MessageCount, Tag = grouping.Name };
             QueueTreeView.Items.Add(groupingNode);
             var observable = grouping.Queues.ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
 
@@ -52,9 +55,21 @@
 
         private void OnProcessMqueue(MQueue queue, TreeViewItem groupingNode)
         {
-            //TODO: hämta MessagesCount utan att hämta alla messages, hämta messages vid klick 
+            var queueNode = new TreeViewItem { Header = queue.Name + " " + queue.MessagesCount, Tag = queue };
+            queueNode.Selected += QueueNodeOnSelected;
+            groupingNode.Items.Add(queueNode);
+        }
 
-            groupingNode.Items.Add(new TreeViewItem { Header = queue.Name + " " + queue.MessagesCount });
+        private void QueueNodeOnSelected(object sender, RoutedEventArgs routedEventArgs)
+        {
+            var queueNode = (TreeViewItem) sender;
+
+            var loadedQueue = _repository.LoadQueue((MQueue)queueNode.Tag);
+
+            foreach (var message in loadedQueue.Messages)
+            {
+                queueNode.Items.Add(new TreeViewItem {Header = message.Body.Substring(0, 15) + "..."});
+            }
         }
     }
 }

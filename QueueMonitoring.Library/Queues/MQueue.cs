@@ -1,14 +1,16 @@
 namespace QueueMonitoring.Library.Queues
 {
-    public abstract class MQueue
+    public class MQueue
     {
-        protected MQueue(string name, uint messagesCount)
+        public MQueue(string name, string internalName, int messagesCount)
         {
             Name = name;
+            InternalName = internalName;
             MessagesCount = messagesCount;
         }
 
         public string Name { get; }
-        public uint MessagesCount { get; }
+        public string InternalName { get; }
+        public int MessagesCount { get; }
     }
 }

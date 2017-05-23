@@ -46,7 +46,7 @@
     <Compile Include="IMessageCountService.cs" />
     <Compile Include="MqGrouping.cs" />
     <Compile Include="PowerShellMethods.cs" />
-    <Compile Include="Queues\BaseQueue.cs" />
+    <Compile Include="Queues\LoadedQueue.cs" />
     <Compile Include="MqMessage.cs" />
     <Compile Include="Queues\MQueue.cs" />
     <Compile Include="MsmqExtensions.cs" />

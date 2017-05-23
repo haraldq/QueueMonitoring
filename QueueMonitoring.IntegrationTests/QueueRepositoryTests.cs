@@ -1,61 +1,32 @@
 ﻿namespace QueueMonitoring.IntegrationTests
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Messaging;
-    using System.Reflection;
     using FluentAssertions;
     using Library;
-    using Library.Queues;
     using Moq;
     using Xunit;
 
     public class QueueRepositoryTests : IClassFixture<MsmqFixture>
     {
-        private readonly MsmqFixture _fixture;
-
         public QueueRepositoryTests(MsmqFixture fixture)
         {
             _fixture = fixture;
         }
 
-        [Fact]
-        public void GetGroupingShouldBeIdempotent()
-        {
-            var mQueues = GetCoonMembersGrouping().Queues;
-            var queue = mQueues.Single(x => x.Name == _fixture.QueueNames[0]);
-            queue.MessagesCount.Should().Be(3);
+        private readonly MsmqFixture _fixture;
 
-            queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
-            queue.MessagesCount.Should().Be(3);
+
+        private QueueRepository GetRepository()
+        {
+            return new QueueRepository(_fixture.GetMessageCountService, groupingFilter: "coon_and_friends_members");
         }
 
-        [Fact]
-        public void GetGroupingShouldGetAllQueuesInGrouping()
+        private MqGrouping GetCoonMembersGrouping()
         {
-            GetCoonMembersGrouping().Queues.Should().HaveCount(4);
-        }
+            var repository = GetRepository();
 
-        [Fact]
-        public void GetGroupingShouldGetMessageCount()
-        {
-            var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
-
-            queue.MessagesCount.Should().Be(3);
-        }
-
-        [Fact]
-        public void GetGroupingShouldGetAllGroupings()
-        {
-            var repository = new QueueRepository(new Mock<IMessageCountService>().Object,groupingFilter: "coon_and_friends_[a-zA-Z]*");
-
-            var groupings = repository.GetGroupings().ToList();
-
-            groupings.Should().HaveCount(2);
-            groupings.Single(x => x.Name == "coon_and_friends_members").Should().NotBeNull();
-            groupings.Single(x => x.Name == "coon_and_friends_enemies").Should().NotBeNull();
+            return repository.GetGroupings().Single();
         }
 
         [Fact]
@@ -81,12 +52,62 @@
             }
         }
 
-
-        private MqGrouping GetCoonMembersGrouping()
+        [Fact]
+        public void GetGroupingShouldBeIdempotent()
         {
-            var repository = new QueueRepository(_fixture.GetMessageCountService, groupingFilter: "coon_and_friends_members");
+            var mQueues = GetCoonMembersGrouping().Queues;
+            var queue = mQueues.Single(x => x.Name == _fixture.QueueNames[0]);
+            queue.MessagesCount.Should().Be(3);
 
-            return repository.GetGroupings().Single();
+            queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
+            queue.MessagesCount.Should().Be(3);
+        }
+
+        [Fact]
+        public void GetGroupingShouldGetAllGroupings()
+        {
+            var repository = new QueueRepository(new Mock<IMessageCountService>().Object, groupingFilter: "coon_and_friends_[a-zA-Z]*");
+
+            var groupings = repository.GetGroupings().ToList();
+
+            groupings.Should().HaveCount(2);
+            groupings.Single(x => x.Name == "coon_and_friends_members").Should().NotBeNull();
+            groupings.Single(x => x.Name == "coon_and_friends_enemies").Should().NotBeNull();
+        }
+
+        [Fact]
+        public void GetGroupingShouldGetAllQueuesInGrouping()
+        {
+            GetCoonMembersGrouping().Queues.Should().HaveCount(4);
+        }
+
+        [Fact]
+        public void GetGroupingShouldGetMessageCount()
+        {
+            var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
+
+            queue.MessagesCount.Should().Be(3);
+        }
+
+        [Fact]
+        public void GetMessagesShouldEqualQueueCount()
+        {
+            var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
+
+            var loadedMqueue = GetRepository().LoadQueue(queue);
+
+            loadedMqueue.Messages.Union(loadedMqueue.PoisonMessages).Should().HaveCount(queue.MessagesCount);
+        }
+
+        [Fact]
+        public void GetMessagesShouldHaveBody()
+        {
+            var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
+
+            var loadedMqueue = GetRepository().LoadQueue(queue);
+            
+            loadedMqueue.Messages.SingleOrDefault(x => x.Body.Contains("South Park is safe. Until next time.")).Should().NotBeNull();
+            loadedMqueue.PoisonMessages.SingleOrDefault(x => x.Body.Contains("Fear not everyone! Coon is here to save the day.")).Should().NotBeNull();
         }
     }
 }
