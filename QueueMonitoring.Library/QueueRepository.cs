@@ -12,15 +12,16 @@
     public class QueueRepository
     {
         private const string PrivateQueueIdentifier = "private$\\";
+        private readonly IMessageCountService _messageCountService;
         private readonly string _groupingDelimiter;
         private readonly string _groupingFilter;
-                    
-        public QueueRepository(string groupingDelimiter = ".", string groupingFilter = "\\d*")
+
+        public QueueRepository(IMessageCountService messageCountService, string groupingDelimiter = ".", string groupingFilter = "\\d*")
         {
+            _messageCountService = messageCountService;
             _groupingDelimiter = groupingDelimiter;
             _groupingFilter = groupingFilter;
         }
-
         public IEnumerable<MqGrouping> GetGroupings()
         {
             var queues = MessageQueue.GetPrivateQueuesByMachine(".");
@@ -52,27 +53,25 @@
 
             return queueName.Substring(0, indexOfGroupingDelimiter);
         }
-        private static MQueue GetMQueues(MessageQueue q, string group)
+        private MQueue GetMQueues(MessageQueue q, string group)
         {
             var name = q.QueueName.Replace($"{PrivateQueueIdentifier}{group}.", "").Trim();
-            var messages = GetMessageInternal(q).ToList();
-            var poisonQueue =  GetSubQueue(q, "poison");
+            //var poisonQueue =  GetSubQueue(q, "poison");
 
-            var baseQueue = new BaseQueue(name, messages, poisonQueue);
+            var baseQueue = new BaseQueue(name, _messageCountService.GetCount(q));
 
             return baseQueue;
         }
 
-        private static SubQueue GetSubQueue(MessageQueue q, string subqueue)
-        {
-            var path = $".\\{q.QueueName};{subqueue}";
-            var subq = new MessageQueue(path);
-            HackFixMsmqFormatNameBug(path, subq);
-            var messages = GetMessageInternal(subq).ToList();
+        //private SubQueue GetSubQueue(MessageQueue q, string subqueue)
+        //{
+        //    var path = $".\\{q.QueueName};{subqueue}";
+        //    var subq = new MessageQueue(path);
+        //    HackFixMsmqFormatNameBug(path, subq);
 
-            return new SubQueue(path, messages);
-        }
-        
+        //    return new SubQueue(path, _messageCountService.GetCount(subq));
+        //}
+
         private static void HackFixMsmqFormatNameBug(string path, MessageQueue subq)
         {
             var fn = typeof(MessageQueue).GetField("formatName", BindingFlags.NonPublic | BindingFlags.Instance);

@@ -1,6 +1,7 @@
 ﻿namespace QueueMonitoring.Library
 {
     using System;
+    using System.Messaging;
     using System.Runtime.InteropServices;
     using System.Transactions;
 
@@ -50,7 +51,54 @@
             public IntPtr aPropID;
             public IntPtr aPropVar;
             public IntPtr status;
+        }
 
+        public static uint GetCount(this MessageQueue queue)
+        {
+            return GetCount(".\\"+queue.QueueName);
+        }
+
+        private static uint GetCount(string path)
+        {
+            if (!MessageQueue.Exists(path))
+            {
+                return 0;
+            }
+
+            MQMGMTPROPS props = new MQMGMTPROPS { cProp = 1 };
+            try
+            {
+                props.aPropID = Marshal.AllocHGlobal(sizeof(int));
+                Marshal.WriteInt32(props.aPropID, PROPID_MGMT_QUEUE_MESSAGE_COUNT);
+
+                props.aPropVar = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(MQPROPVariant)));
+                Marshal.StructureToPtr(new MQPROPVariant { vt = VT_NULL }, props.aPropVar, false);
+
+                props.status = Marshal.AllocHGlobal(sizeof(int));
+                Marshal.WriteInt32(props.status, 0);
+
+                int result = MQMgmtGetInfo(null, "queue=Direct=OS:" + path, ref props);
+                if (result != 0 || Marshal.ReadInt32(props.status) != 0)
+                {
+                    return 0;
+                }
+
+                MQPROPVariant propVar = (MQPROPVariant)Marshal.PtrToStructure(props.aPropVar, typeof(MQPROPVariant));
+                if (propVar.vt != VT_UI4)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return propVar.ulVal;
+                }
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(props.aPropID);
+                Marshal.FreeHGlobal(props.aPropVar);
+                Marshal.FreeHGlobal(props.status);
+            }
         }
     }
 }

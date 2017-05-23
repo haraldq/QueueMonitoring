@@ -1,9 +1,7 @@
 ﻿namespace QueueMonitoring.Console
 {
     using System;
-    using System.Linq;
     using System.Reactive.Linq;
-    using System.Xml.Linq;
     using IntegrationTests;
     using Library;
 
@@ -11,7 +9,7 @@
     {
         private static void Main(string[] args)
         {
-            var queueRepository = new QueueRepository();
+            var queueRepository = new QueueRepository(new MessageCountService(PowerShellMethods.GetMsmqMessageCount()));
 
             new MsmqFixture().CreateQueuesAndMessages();
 
@@ -26,10 +24,7 @@
         {
             Console.WriteLine($"============ {grouping.Name} ============");
             foreach (var mQueue in grouping.Queues)
-            {
-
                 Console.WriteLine($"### {mQueue.Name,-25} Messages: {mQueue.MessagesCount}");
-            }
         }
     }
 }

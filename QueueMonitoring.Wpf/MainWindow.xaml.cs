@@ -21,24 +21,24 @@
             InitializeTreeview();
         }
 
-        private Stopwatch stopwatch;
+        private Stopwatch _stopwatch;
 
         private void InitializeTreeview()
         {
-            var repository = new QueueRepository();
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
+
+            var repository = new QueueRepository(new MessageCountService(PowerShellMethods.GetMsmqMessageCount()));
 
             var observable = repository.GetGroupings().ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
-
-            stopwatch = new Stopwatch();
-            stopwatch.Start();
-
+            
             observable.Subscribe(ProcessMqGrouping, OnCompleted);
         }
 
         private void OnCompleted()
         {
-            stopwatch.Stop();
-            this.DebugTxt.Text = "Rendering took " + stopwatch.ElapsedMilliseconds + " ms.";
+            _stopwatch.Stop();
+            this.DebugTxt.Text = "Rendering took " + _stopwatch.ElapsedMilliseconds + " ms.";
         }
 
         private void ProcessMqGrouping(MqGrouping grouping)

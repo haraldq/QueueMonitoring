@@ -4,7 +4,7 @@ namespace QueueMonitoring.Library.Queues
 
     public class SubQueue : MQueue
     {
-        public SubQueue(string name, List<MqMessage> messages) : base(name, messages)
+        public SubQueue(string name, uint messageCount) : base(name, messageCount)
         {
         }
     }

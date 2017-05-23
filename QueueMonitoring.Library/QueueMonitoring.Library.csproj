@@ -32,6 +32,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Messaging" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
@@ -42,7 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IMessageCountService.cs" />
     <Compile Include="MqGrouping.cs" />
+    <Compile Include="PowerShellMethods.cs" />
     <Compile Include="Queues\BaseQueue.cs" />
     <Compile Include="MqMessage.cs" />
     <Compile Include="Queues\MQueue.cs" />

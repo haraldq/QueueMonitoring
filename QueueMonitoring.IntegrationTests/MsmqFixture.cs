@@ -3,24 +3,33 @@ namespace QueueMonitoring.IntegrationTests
     using System;
     using System.Collections.Generic;
     using System.Messaging;
-
-
-    using System.ComponentModel;
-
-    using System.Runtime.InteropServices;
-    using System.Transactions;
     using Library;
-
 
     public class MsmqFixture : IDisposable
     {
-        public string Grouping = "coon_and_friends_members";
-        public string[] QueueNames = { "the_coon", "mint_berry_crunch", "mosquito", "mysterion" };
         private static readonly Dictionary<string, MessageQueue> Queues = new Dictionary<string, MessageQueue>();
-        
+
+        private IMessageCountService _messageCountService;
+        public string Grouping = "coon_and_friends_members";
+        public string[] QueueNames = {"the_coon", "mint_berry_crunch", "mosquito", "mysterion"};
+
+
         public MsmqFixture()
         {
             CreateQueuesAndMessages();
+        }
+
+        public IMessageCountService GetMessageCountService => _messageCountService ?? (_messageCountService = new MessageCountService(PowerShellMethods.GetMsmqMessageCount()));
+
+        public void Dispose()
+        {
+            foreach (var queue in Queues.Values)
+            {
+                ClearQueue(new MessageQueue($".\\{queue.QueueName};poison"));
+                ClearQueue(queue);
+            }
+
+            Queues.Clear();
         }
 
         public void CreateQueuesAndMessages()
@@ -60,7 +69,10 @@ namespace QueueMonitoring.IntegrationTests
 
                 ClearQueue(queue);
             }
-            else queue = MessageQueue.Create(privateQueuePath, true);
+            else
+            {
+                queue = MessageQueue.Create(privateQueuePath, true);
+            }
 
             return queue;
         }
@@ -74,17 +86,6 @@ namespace QueueMonitoring.IntegrationTests
         {
             var message = q.Peek();
             q.MoveToSubQueue("poison", message);
-        }
-
-        public void Dispose()
-        {
-            foreach (var queue in Queues.Values)
-            {
-                ClearQueue(new MessageQueue($".\\{queue.QueueName};poison"));
-                ClearQueue(queue);
-            }
-
-            Queues.Clear();
         }
     }
 }

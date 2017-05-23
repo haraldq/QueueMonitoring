@@ -5,11 +5,9 @@ namespace QueueMonitoring.Library.Queues
     public class BaseQueue : MQueue
     {
 
-        public BaseQueue(string name, List<MqMessage> messages, SubQueue poisonQueue) : base(name, messages)
+        public BaseQueue(string name, uint messageCount) : base(name, messageCount)
         {
-            PoisonQueue = poisonQueue;
         }
-
-        public SubQueue PoisonQueue { get; }
+        
     }
 }
