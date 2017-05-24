@@ -17,17 +17,33 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
-        <TreeView Name="QueueTreeView"  Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"></TreeView>
-        <TextBlock Name="DebugTxt" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"></TextBlock>
-        <ListView Grid.Row="0" Grid.Column="1" Margin="10" Name="MessageListView">
-        <ListView.View>
-            <GridView>
-                <GridViewColumn Header="Sent time" DisplayMemberBinding="{Binding SentAt}" />
-                <GridViewColumn Header="Arrive time" DisplayMemberBinding="{Binding ArrivedAt}" />
-                <GridViewColumn Header="Body" DisplayMemberBinding="{Binding Body}" />
-            </GridView>
-        </ListView.View>
-        </ListView>
+        <TreeView Name="QueueTreeView"  Grid.Row="0" Grid.Column="0" Grid.RowSpan="3"></TreeView>
+        <TextBlock Name="DebugTxt" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"></TextBlock>
+        <StackPanel Grid.Row="0" Grid.Column="1" >
+            <TextBlock Text="Messages"></TextBlock>
+            <ListView Margin="10" Name="MessageListView">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Sent time" DisplayMemberBinding="{Binding SentAt}" />
+                        <GridViewColumn Header="Arrive time" DisplayMemberBinding="{Binding ArrivedAt}" />
+                        <GridViewColumn Header="Body" DisplayMemberBinding="{Binding Body}" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="1">
+            <TextBlock Text="Poison messages"></TextBlock>
+            <ListView  Margin="10" Name="PoisonMessageListView">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Sent time" DisplayMemberBinding="{Binding SentAt}" />
+                        <GridViewColumn Header="Arrive time" DisplayMemberBinding="{Binding ArrivedAt}" />
+                        <GridViewColumn Header="Body" DisplayMemberBinding="{Binding Body}" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </StackPanel>
     </Grid>
 </Window>

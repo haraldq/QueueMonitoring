@@ -41,7 +41,11 @@
         private void OnCompleted()
         {
             _stopwatch.Stop();
-            this.DebugTxt.Text = "Rendering took " + _stopwatch.ElapsedMilliseconds + " ms.";
+
+            DebugTxt.Text = "Rendering took " + _stopwatch.ElapsedMilliseconds + " ms.";
+
+            if (!QueueTreeView.Items.IsEmpty)
+                ((TreeViewItem)QueueTreeView.Items[0]).Focus();
         }
 
         private void ProcessMqGrouping(MqGrouping grouping)
@@ -59,20 +63,29 @@
             queueNode.Selected += QueueNodeOnSelected;
             groupingNode.Items.Add(queueNode);
         }
+
         private void QueueNodeOnSelected(object sender, RoutedEventArgs routedEventArgs)
         {
             var queueNode = (TreeViewItem)sender;
-            
-            var observable = _repository.LoadQueue((MQueue)queueNode.Tag).Messages.ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
 
             MessageListView.Items.Clear();
+            PoisonMessageListView.Items.Clear();
 
-            observable.Subscribe(OnProcessMessage);
+            var observableMessages = _repository.LoadQueue((MQueue)queueNode.Tag).Messages.ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
+            observableMessages.Subscribe(OnProcessMessage);
+
+            var observablePoisonMessages = _repository.LoadQueue((MQueue)queueNode.Tag).PoisonMessages.ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
+            observablePoisonMessages.Subscribe(OnProcessPoisonMessage);
         }
 
         private void OnProcessMessage(MqMessage message)
         {
             MessageListView.Items.Add(message);
+        }
+
+        private void OnProcessPoisonMessage(MqMessage message)
+        {
+            PoisonMessageListView.Items.Add(message);
         }
     }
 }
