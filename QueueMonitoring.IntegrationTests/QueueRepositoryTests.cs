@@ -1,5 +1,6 @@
 ﻿namespace QueueMonitoring.IntegrationTests
 {
+    using System;
     using System.Linq;
     using System.Messaging;
     using FluentAssertions;
@@ -108,6 +109,19 @@
             
             loadedMqueue.Messages.SingleOrDefault(x => x.Body.Contains("South Park is safe. Until next time.")).Should().NotBeNull();
             loadedMqueue.PoisonMessages.SingleOrDefault(x => x.Body.Contains("Fear not everyone! Coon is here to save the day.")).Should().NotBeNull();
+        }
+
+        [Fact]
+        public void GetMessagesShouldHaveMetadataProperties()
+        {
+            var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
+
+            var loadedMqueue = GetRepository().LoadQueue(queue);
+
+            var msg = loadedMqueue.Messages.FirstOrDefault();
+            msg.Body.Should().NotBeNullOrEmpty();
+            msg.SentAt.Should().BeBefore(DateTime.Now).And.BeAfter(DateTime.MinValue);
+            msg.ArrivedAt.Should().BeBefore(DateTime.Now).And.BeAfter(DateTime.MinValue);
         }
     }
 }

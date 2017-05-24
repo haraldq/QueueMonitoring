@@ -59,17 +59,20 @@
             queueNode.Selected += QueueNodeOnSelected;
             groupingNode.Items.Add(queueNode);
         }
-
         private void QueueNodeOnSelected(object sender, RoutedEventArgs routedEventArgs)
         {
-            var queueNode = (TreeViewItem) sender;
+            var queueNode = (TreeViewItem)sender;
+            
+            var observable = _repository.LoadQueue((MQueue)queueNode.Tag).Messages.ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
 
-            var loadedQueue = _repository.LoadQueue((MQueue)queueNode.Tag);
+            MessageListView.Items.Clear();
 
-            foreach (var message in loadedQueue.Messages)
-            {
-                queueNode.Items.Add(new TreeViewItem {Header = message.Body.Substring(0, 15) + "..."});
-            }
+            observable.Subscribe(OnProcessMessage);
+        }
+
+        private void OnProcessMessage(MqMessage message)
+        {
+            MessageListView.Items.Add(message);
         }
     }
 }

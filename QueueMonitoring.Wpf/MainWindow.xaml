@@ -5,14 +5,29 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:QueueMonitoring.Wpf"
         mc:Ignorable="d"
-        Title="MainWindow" Height="550" Width="525">
-    <StackPanel>
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <Grid>
-                <TreeView Name="QueueTreeView">
-                </TreeView>
-            </Grid>
-        </ScrollViewer>
-        <TextBlock Name="DebugTxt"></TextBlock>
-    </StackPanel>
+        Title="MainWindow" 
+        WindowState="Maximized"
+        Height="550" 
+        Width="525">
+    <Grid ShowGridLines="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <TreeView Name="QueueTreeView"  Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"></TreeView>
+        <TextBlock Name="DebugTxt" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"></TextBlock>
+        <ListView Grid.Row="0" Grid.Column="1" Margin="10" Name="MessageListView">
+        <ListView.View>
+            <GridView>
+                <GridViewColumn Header="Sent time" DisplayMemberBinding="{Binding SentAt}" />
+                <GridViewColumn Header="Arrive time" DisplayMemberBinding="{Binding ArrivedAt}" />
+                <GridViewColumn Header="Body" DisplayMemberBinding="{Binding Body}" />
+            </GridView>
+        </ListView.View>
+        </ListView>
+    </Grid>
 </Window>

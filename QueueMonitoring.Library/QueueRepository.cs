@@ -90,7 +90,8 @@
             {
                 messageBody = reader.ReadToEnd();
             }
-            return new MqMessage(messageBody);
+
+            return new MqMessage(messageBody.Substring(0, 50) + "...", m.SentTime, m.ArrivedTime);
         }
 
         public LoadedMqueue LoadQueue(MQueue mq)
@@ -101,6 +102,10 @@
             var poisonPath = path + ";poison";
             var pq = new MessageQueue(poisonPath);
             HackFixMsmqFormatNameBug(poisonPath, pq);
+
+            var propertyFilter = new MessagePropertyFilter { Body = true, SentTime = true, ArrivedTime = true };
+            q.MessageReadPropertyFilter = propertyFilter;
+            pq.MessageReadPropertyFilter = propertyFilter;
 
             return new LoadedMqueue(mq, GetMessageInternal(q), GetMessageInternal(pq));
         }
