@@ -1,6 +1,7 @@
 ﻿namespace QueueMonitoring.Wpf
 {
     using System;
+    using System.Collections.ObjectModel;
     using System.Diagnostics;
     using System.Linq;
     using System.Reactive.Concurrency;
@@ -16,16 +17,14 @@
     /// </summary>
     public partial class MainWindow : Window
     {
-
+        private Stopwatch _stopwatch;
         private QueueRepository _repository;
         public MainWindow()
         {
             InitializeComponent();
             InitializeTreeview();
         }
-
-        private Stopwatch _stopwatch;
-
+        
         private void InitializeTreeview()
         {
             _stopwatch = new Stopwatch();
@@ -45,37 +44,15 @@
             DebugTxt.Text = "Rendering took " + _stopwatch.ElapsedMilliseconds + " ms.";
 
             if (!QueueTreeView.Items.IsEmpty)
-                ((TreeViewItem)QueueTreeView.Items[0]).Focus();
+                 ((TreeViewItem)QueueTreeView
+                    .ItemContainerGenerator
+                    .ContainerFromItem(QueueTreeView.Items[0])).Focus();
+            
         }
 
         private void ProcessMqGrouping(MqGrouping grouping)
         {
-            var groupingNode = new TreeViewItem { Header = grouping.Name + " " + grouping.MessageCount, Tag = grouping.Name };
-            QueueTreeView.Items.Add(groupingNode);
-            var observable = grouping.Queues.ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
-
-            observable.Subscribe(x => OnProcessMqueue(x, groupingNode));
-        }
-
-        private void OnProcessMqueue(MQueue queue, TreeViewItem groupingNode)
-        {
-            var queueNode = new TreeViewItem { Header = queue.Name + " " + queue.MessagesCount, Tag = queue };
-            queueNode.Selected += QueueNodeOnSelected;
-            groupingNode.Items.Add(queueNode);
-        }
-
-        private void QueueNodeOnSelected(object sender, RoutedEventArgs routedEventArgs)
-        {
-            var queueNode = (TreeViewItem)sender;
-
-            MessageListView.Items.Clear();
-            PoisonMessageListView.Items.Clear();
-
-            var observableMessages = _repository.LoadQueue((MQueue)queueNode.Tag).Messages.ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
-            observableMessages.Subscribe(OnProcessMessage);
-
-            var observablePoisonMessages = _repository.LoadQueue((MQueue)queueNode.Tag).PoisonMessages.ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
-            observablePoisonMessages.Subscribe(OnProcessPoisonMessage);
+            QueueTreeView.Items.Add(grouping);
         }
 
         private void OnProcessMessage(MqMessage message)
@@ -86,6 +63,22 @@
         private void OnProcessPoisonMessage(MqMessage message)
         {
             PoisonMessageListView.Items.Add(message);
+        }
+        
+        private void QueueTreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var queue = e.NewValue as MQueue;
+            if (queue != null)
+            {
+                MessageListView.Items.Clear();
+                PoisonMessageListView.Items.Clear();
+
+                var observableMessages = _repository.LoadQueue(queue).Messages.ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
+                observableMessages.Subscribe(OnProcessMessage);
+
+                var observablePoisonMessages = _repository.LoadQueue(queue).PoisonMessages.ToObservable().SubscribeOn(Scheduler.Default).ObserveOnDispatcher();
+                observablePoisonMessages.Subscribe(OnProcessPoisonMessage);
+            }
         }
     }
 }
