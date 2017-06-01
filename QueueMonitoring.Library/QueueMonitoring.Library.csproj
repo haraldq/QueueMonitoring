@@ -54,6 +54,7 @@
     <Compile Include="QueueRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Queues\SubQueue.cs" />
+    <Compile Include="SubQueueType.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

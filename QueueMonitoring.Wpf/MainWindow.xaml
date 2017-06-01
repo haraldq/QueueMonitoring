@@ -23,7 +23,7 @@
         </Grid.RowDefinitions>
         <TreeView Name="QueueTreeView" Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" SelectedItemChanged="QueueTreeView_OnSelectedItemChanged">
             <TreeView.Resources>
-                   <HierarchicalDataTemplate DataType="{x:Type self:MqGrouping}" ItemsSource="{Binding Queues}">
+                <HierarchicalDataTemplate DataType="{x:Type self:MqGrouping}" ItemsSource="{Binding Queues}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding Name}" Margin="0,0,5,0"/>
                         <TextBlock Text="{Binding MessagesCount}"/>
@@ -38,29 +38,27 @@
             </TreeView.Resources>
         </TreeView>
         <TextBlock Name="DebugTxt" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"></TextBlock>
-        <StackPanel Grid.Row="0" Grid.Column="1" >
-            <TextBlock Text="Messages"></TextBlock>
-            <ListView Margin="10" Name="MessageListView">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="Sent time" DisplayMemberBinding="{Binding SentAt}" />
-                        <GridViewColumn Header="Arrive time" DisplayMemberBinding="{Binding ArrivedAt}" />
-                        <GridViewColumn Header="Body" DisplayMemberBinding="{Binding Body}" />
-                    </GridView>
-                </ListView.View>
-            </ListView>
-        </StackPanel>
-        <StackPanel Grid.Row="1" Grid.Column="1">
-            <TextBlock Text="Poison messages"></TextBlock>
-            <ListView  Margin="10" Name="PoisonMessageListView">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="Sent time" DisplayMemberBinding="{Binding SentAt}" />
-                        <GridViewColumn Header="Arrive time" DisplayMemberBinding="{Binding ArrivedAt}" />
-                        <GridViewColumn Header="Body" DisplayMemberBinding="{Binding Body}" />
-                    </GridView>
-                </ListView.View>
-            </ListView>
-        </StackPanel>
+        <ScrollViewer Grid.Row="0" Grid.Column="1"  VerticalScrollBarVisibility="Auto">
+            <StackPanel Name="MessageStackPanel" Visibility="Hidden" Height="Auto" >
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton GroupName="SubQueueType" Content="Posion" IsChecked="True"></RadioButton>
+                    <RadioButton GroupName="SubQueueType" Content="Default"></RadioButton>
+                    <ComboBox SelectionChanged="Selector_OnSelected">
+                        <ComboBoxItem IsSelected="True">100</ComboBoxItem>
+                        <ComboBoxItem>1000</ComboBoxItem>
+                        <ComboBoxItem>10000</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+                <ListView Margin="10" Name="MessageListView">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Sent time" DisplayMemberBinding="{Binding SentAt}" />
+                            <GridViewColumn Header="Arrive time" DisplayMemberBinding="{Binding ArrivedAt}" />
+                            <!--<GridViewColumn Header="Body" DisplayMemberBinding="{Binding Body}" />-->
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>

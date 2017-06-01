@@ -63,6 +63,22 @@
             return baseQueue;
         }
 
+        public LoadedMqueue LoadQueue(MQueue mq)
+        {
+            var q = new MessageQueue(mq.Path);
+
+            var poisonPath = mq.SubQueuePath(SubQueueType.Poison);
+            var pq = new MessageQueue(poisonPath);
+            HackFixMsmqFormatNameBug(poisonPath, pq);
+
+            var propertyFilter = new MessagePropertyFilter { Body = true, SentTime = true, ArrivedTime = true, Id = true };
+            q.MessageReadPropertyFilter = propertyFilter;
+            pq.MessageReadPropertyFilter = propertyFilter;
+
+            var messages = GetMessagesInternal(q).Union(GetMessagesInternal(pq, SubQueueType.Poison)).ToList();
+            return new LoadedMqueue(mq, messages);
+        }
+
         private static void HackFixMsmqFormatNameBug(string path, MessageQueue subq)
         {
             var fn = typeof(MessageQueue).GetField("formatName", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -71,7 +87,7 @@
                 fn.SetValue(subq, formatName);
         }
 
-        private static IEnumerable<MqMessage> GetMessageInternal(MessageQueue q)
+        private static IEnumerable<MqMessage> GetMessagesInternal(MessageQueue q, SubQueueType? subQueueType = null)
         {
             var enumerator = q.GetMessageEnumerator2();
 
@@ -80,34 +96,26 @@
             while (enumerator.MoveNext())
                 messages.Add(enumerator.Current);
 
-            return messages.Select(CreateMqMessages);
+            return messages.Select(x => CreateMqMessages(x, subQueueType));
         }
 
-        private static MqMessage CreateMqMessages(Message m)
+        private static MqMessage CreateMqMessages(Message m, SubQueueType? subQueueType = null)
         {
             string messageBody;
             using (var reader = new StreamReader(m.BodyStream))
             {
                 messageBody = reader.ReadToEnd();
             }
-
-            return new MqMessage(messageBody.Substring(0, 50) + "...", m.SentTime, m.ArrivedTime);
+            return new MqMessage(m.Id, messageBody, m.SentTime, m.ArrivedTime, subQueueType);
         }
 
-        public LoadedMqueue LoadQueue(MQueue mq)
+        public void MoveToSubqueue(MQueue fromMq, MqMessage m, SubQueueType toSubQueueType)
         {
-            var path = ".\\" + mq.InternalName;
-            var q = new MessageQueue(path);
+            var q = new MessageQueue(fromMq.SubQueuePath(m.SubQueueType));
 
-            var poisonPath = path + ";poison";
-            var pq = new MessageQueue(poisonPath);
-            HackFixMsmqFormatNameBug(poisonPath, pq);
-
-            var propertyFilter = new MessagePropertyFilter { Body = true, SentTime = true, ArrivedTime = true };
-            q.MessageReadPropertyFilter = propertyFilter;
-            pq.MessageReadPropertyFilter = propertyFilter;
-
-            return new LoadedMqueue(mq, GetMessageInternal(q), GetMessageInternal(pq));
+            var message = q.PeekById(m.InternalMessageId);
+            
+            q.MoveToSubQueue(toSubQueueType.ToString().ToLower(), message);
         }
     }
 }

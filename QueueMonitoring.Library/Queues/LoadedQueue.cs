@@ -5,13 +5,14 @@ namespace QueueMonitoring.Library.Queues
 
     public class LoadedMqueue : MQueue
     {
-        public List<MqMessage> Messages { get; }
-        public List<MqMessage> PoisonMessages { get; }
+        private readonly IEnumerable<MqMessage> _messages;
 
-        public LoadedMqueue(MQueue mq, IEnumerable<MqMessage> messages, IEnumerable<MqMessage> poisonMessages) : base(mq.Name, mq.InternalName, mq.MessagesCount)
+        public List<MqMessage> Messages => _messages.Where(x => !x.SubQueueType.HasValue).ToList();
+        public IEnumerable<MqMessage> PoisonMessages => _messages.Where(x => x.SubQueueType == SubQueueType.Poison).ToList();
+
+        public LoadedMqueue(MQueue mq, IEnumerable<MqMessage> messages) : base(mq.Name, mq.InternalName, mq.MessagesCount)
         {
-            Messages = messages.ToList();
-            PoisonMessages = poisonMessages.ToList();
+            _messages = messages;
         }
     }
 }

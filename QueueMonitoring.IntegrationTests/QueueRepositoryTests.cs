@@ -107,7 +107,7 @@
 
             var loadedMqueue = GetRepository().LoadQueue(queue);
             
-            loadedMqueue.Messages.SingleOrDefault(x => x.Body.Contains("South Park is safe. Until next time.")).Should().NotBeNull();
+            loadedMqueue.Messages.FirstOrDefault(x => x.Body.Contains("South Park is safe. Until next time.")).Should().NotBeNull();
             loadedMqueue.PoisonMessages.SingleOrDefault(x => x.Body.Contains("Fear not everyone! Coon is here to save the day.")).Should().NotBeNull();
         }
 
@@ -118,10 +118,40 @@
 
             var loadedMqueue = GetRepository().LoadQueue(queue);
 
-            var msg = loadedMqueue.Messages.FirstOrDefault();
-            msg.Body.Should().NotBeNullOrEmpty();
-            msg.SentAt.Should().BeBefore(DateTime.Now).And.BeAfter(DateTime.MinValue);
-            msg.ArrivedAt.Should().BeBefore(DateTime.Now).And.BeAfter(DateTime.MinValue);
+            var message = loadedMqueue.Messages.FirstOrDefault();
+            message.Body.Should().NotBeNullOrEmpty();
+            message.SentAt.Should().BeBefore(DateTime.Now).And.BeAfter(DateTime.MinValue);
+            message.ArrivedAt.Should().BeBefore(DateTime.Now).And.BeAfter(DateTime.MinValue);
+        }
+
+        [Fact]
+        public void MovingMessageToSubqueue()
+        {
+            var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
+            var repository = GetRepository();
+            var loadedMqueue = GetRepository().LoadQueue(queue);
+            var message = loadedMqueue.Messages.FirstOrDefault();
+
+            repository.MoveToSubqueue(loadedMqueue, message, SubQueueType.Poison);
+
+            loadedMqueue = GetRepository().LoadQueue(queue);
+            loadedMqueue.Messages.Should().HaveCount(1);
+            loadedMqueue.PoisonMessages.Should().HaveCount(2);
+        }
+
+        [Fact]
+        public void MovingMessageFromSubqueueToRegularQueue()
+        {
+            var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
+            var repository = GetRepository();
+            var loadedMqueue = GetRepository().LoadQueue(queue);
+            var message = loadedMqueue.PoisonMessages.FirstOrDefault();
+
+            //repository.MoveFromSubqueue(loadedMqueue, message);
+
+            loadedMqueue = GetRepository().LoadQueue(queue);
+            loadedMqueue.Messages.Should().HaveCount(3);
+            loadedMqueue.PoisonMessages.Should().HaveCount(0);
         }
     }
 }
