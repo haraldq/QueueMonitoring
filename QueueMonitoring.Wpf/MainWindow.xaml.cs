@@ -63,7 +63,6 @@
         
         private void OnProcessMessage(MqMessage item)
         {
-            //MqMessages.Add(item);
             MessageListView.Items.Add(item);
         }
 
@@ -110,6 +109,16 @@
                 .ObserveOnDispatcher()
                 .Take(count)
                 .Subscribe(OnProcessMessage, OnMessageCompleted);
+        }
+
+        private void MessageListView_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var message = e.AddedItems[0] as MqMessage;
+
+            if (message != null)
+            {
+                MessageInfoTextBox.Text = message.Body;
+            }
         }
     }
 }

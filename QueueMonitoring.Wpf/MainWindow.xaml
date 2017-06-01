@@ -37,7 +37,6 @@
                 </DataTemplate>
             </TreeView.Resources>
         </TreeView>
-        <TextBlock Name="DebugTxt" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"></TextBlock>
         <ScrollViewer Grid.Row="0" Grid.Column="1"  VerticalScrollBarVisibility="Auto">
             <StackPanel Name="MessageStackPanel" Visibility="Hidden" Height="Auto" >
                 <StackPanel Orientation="Horizontal">
@@ -49,7 +48,7 @@
                         <ComboBoxItem>10000</ComboBoxItem>
                     </ComboBox>
                 </StackPanel>
-                <ListView Margin="10" Name="MessageListView">
+                <ListView Margin="10" Name="MessageListView" SelectionChanged="MessageListView_OnSelectionChanged" >
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Sent time" DisplayMemberBinding="{Binding SentAt}" />
@@ -60,5 +59,9 @@
                 </ListView>
             </StackPanel>
         </ScrollViewer>
+        <TextBlock Name="DebugTxt" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"></TextBlock>
+        <StackPanel Grid.Row="2" Grid.Column="1" >
+            <TextBox Name="MessageInfoTextBox" IsReadOnly="True"></TextBox>
+        </StackPanel>
     </Grid>
 </Window>
