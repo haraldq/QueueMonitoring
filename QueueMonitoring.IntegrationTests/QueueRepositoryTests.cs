@@ -131,12 +131,20 @@
             var repository = GetRepository();
             var loadedMqueue = GetRepository().LoadQueue(queue);
             var message = loadedMqueue.Messages.FirstOrDefault();
+            message.SubQueueType.Should().BeNull();
 
             repository.MoveToSubqueue(loadedMqueue, message, SubQueueType.Poison);
 
             loadedMqueue = GetRepository().LoadQueue(queue);
             loadedMqueue.Messages.Should().HaveCount(1);
             loadedMqueue.PoisonMessages.Should().HaveCount(2);
+
+            var poisonMessage = loadedMqueue.PoisonMessages.SingleOrDefault(x => x.InternalMessageId == message.InternalMessageId);
+            poisonMessage.Should().NotBeNull();
+            poisonMessage.SubQueueType.Value.Should().Be(SubQueueType.Poison);
+
+            // cleanup
+            repository.MoveFromSubqueue(loadedMqueue, poisonMessage);
         }
 
         [Fact]
@@ -147,11 +155,15 @@
             var loadedMqueue = GetRepository().LoadQueue(queue);
             var message = loadedMqueue.PoisonMessages.FirstOrDefault();
 
-            //repository.MoveFromSubqueue(loadedMqueue, message);
+            repository.MoveFromSubqueue(loadedMqueue, message);
 
             loadedMqueue = GetRepository().LoadQueue(queue);
             loadedMqueue.Messages.Should().HaveCount(3);
             loadedMqueue.PoisonMessages.Should().HaveCount(0);
+            var m = loadedMqueue.Messages.Single(x => x.InternalMessageId == message.InternalMessageId);
+
+            // cleanup
+            repository.MoveToSubqueue(loadedMqueue, m, SubQueueType.Poison);
         }
     }
 }

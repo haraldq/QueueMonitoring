@@ -117,5 +117,15 @@
             
             q.MoveToSubQueue(toSubQueueType.ToString().ToLower(), message);
         }
+
+        public void MoveFromSubqueue(LoadedMqueue mq, MqMessage m)
+        {
+            var q = new MessageQueue(mq.Path);
+            var subq = new MessageQueue(mq.SubQueuePath(m.SubQueueType));
+
+            var message = subq.PeekById(m.InternalMessageId);
+
+            subq.MoveFromSubQueue(message);
+        }
     }
 }
