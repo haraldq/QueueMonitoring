@@ -6,11 +6,15 @@
         xmlns:local="clr-namespace:QueueMonitoring.Wpf"
         xmlns:self="clr-namespace:QueueMonitoring.Library;assembly=QueueMonitoring.Library"
         xmlns:queues="clr-namespace:QueueMonitoring.Library.Queues;assembly=QueueMonitoring.Library"
+        xmlns:valueConverters="clr-namespace:QueueMonitoring.Wpf.ValueConverters"
         mc:Ignorable="d"
         Title="MainWindow" 
         WindowState="Maximized"
         Height="550" 
         Width="525">
+    <Window.Resources>
+        <valueConverters:IndexConverter x:Key="IndexConverter" />
+    </Window.Resources>
     <Grid ShowGridLines="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"></ColumnDefinition>
@@ -65,6 +69,11 @@
                 <ListView Margin="10" Name="MessageListView" SelectionChanged="MessageListView_OnSelectionChanged" >
                     <ListView.View>
                         <GridView>
+                            <GridViewColumn
+                                Header="Number"
+                                DisplayMemberBinding="{Binding RelativeSource={RelativeSource FindAncestor, 
+                                         AncestorType={x:Type ListViewItem}}, 
+                                         Converter={StaticResource IndexConverter}}" />
                             <GridViewColumn Header="Sent time" DisplayMemberBinding="{Binding SentAt}" />
                             <GridViewColumn Header="Arrive time" DisplayMemberBinding="{Binding ArrivedAt}" />
                             <!--<GridViewColumn Header="Body" DisplayMemberBinding="{Binding Body}" />-->
