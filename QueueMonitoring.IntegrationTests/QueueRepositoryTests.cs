@@ -95,30 +95,31 @@
         {
             var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
 
-            var loadedMqueue = GetRepository().LoadQueue(queue);
+            var messages = GetRepository().MessagesFor(queue);
+            var poisonMessages = GetRepository().MessagesFor(queue, SubQueueType.Poison);
 
-            loadedMqueue.Messages.Union(loadedMqueue.PoisonMessages).Should().HaveCount(queue.MessagesCount);
+            messages.Union(poisonMessages).Should().HaveCount(queue.MessagesCount);
+
+            //var loadedMqueue = GetRepository().MessagesFor(queue);
+
+            //loadedMqueue.Messages.Union(loadedMqueue.PoisonMessages).Should().HaveCount(queue.MessagesCount);
         }
 
         [Fact]
         public void GetMessagesShouldHaveBody()
         {
             var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
-
-            var loadedMqueue = GetRepository().LoadQueue(queue);
             
-            loadedMqueue.Messages.FirstOrDefault(x => x.Body.Contains("South Park is safe. Until next time.")).Should().NotBeNull();
-            loadedMqueue.PoisonMessages.SingleOrDefault(x => x.Body.Contains("Fear not everyone! Coon is here to save the day.")).Should().NotBeNull();
+            GetRepository().MessagesFor(queue).FirstOrDefault(x => x.Body.Contains("South Park is safe. Until next time.")).Should().NotBeNull();
+            GetRepository().MessagesFor(queue, SubQueueType.Poison).SingleOrDefault(x => x.Body.Contains("Fear not everyone! Coon is here to save the day.")).Should().NotBeNull();
         }
 
         [Fact]
         public void GetMessagesShouldHaveMetadataProperties()
         {
             var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
-
-            var loadedMqueue = GetRepository().LoadQueue(queue);
-
-            var message = loadedMqueue.Messages.FirstOrDefault();
+            
+            var message = GetRepository().MessagesFor(queue).FirstOrDefault();
             message.Body.Should().NotBeNullOrEmpty();
             message.SentAt.Should().BeBefore(DateTime.Now).And.BeAfter(DateTime.MinValue);
             message.ArrivedAt.Should().BeBefore(DateTime.Now).And.BeAfter(DateTime.MinValue);
@@ -129,22 +130,21 @@
         {
             var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
             var repository = GetRepository();
-            var loadedMqueue = GetRepository().LoadQueue(queue);
-            var message = loadedMqueue.Messages.FirstOrDefault();
+            var message = repository.MessagesFor(queue).FirstOrDefault();
             message.SubQueueType.Should().BeNull();
 
-            repository.MoveToSubqueue(loadedMqueue, message, SubQueueType.Poison);
+            repository.MoveToSubqueue(queue, SubQueueType.Poison, message);
 
-            loadedMqueue = GetRepository().LoadQueue(queue);
-            loadedMqueue.Messages.Should().HaveCount(1);
-            loadedMqueue.PoisonMessages.Should().HaveCount(2);
+            repository.MessagesFor(queue).Should().HaveCount(1);
+            var poisonMessages = repository.MessagesFor(queue, SubQueueType.Poison).ToList();
+            poisonMessages.Should().HaveCount(2);
 
-            var poisonMessage = loadedMqueue.PoisonMessages.SingleOrDefault(x => x.InternalMessageId == message.InternalMessageId);
+            var poisonMessage = poisonMessages.SingleOrDefault(x => x.InternalMessageId == message.InternalMessageId);
             poisonMessage.Should().NotBeNull();
             poisonMessage.SubQueueType.Value.Should().Be(SubQueueType.Poison);
 
             // cleanup
-            repository.MoveFromSubqueue(loadedMqueue, poisonMessage);
+            repository.MoveFromSubqueue(queue, SubQueueType.Poison, poisonMessage);
         }
 
         [Fact]
@@ -152,18 +152,16 @@
         {
             var queue = GetCoonMembersGrouping().Queues.Single(x => x.Name == _fixture.QueueNames[0]);
             var repository = GetRepository();
-            var loadedMqueue = GetRepository().LoadQueue(queue);
-            var message = loadedMqueue.PoisonMessages.FirstOrDefault();
+            var message = repository.MessagesFor(queue, SubQueueType.Poison).FirstOrDefault();
 
-            repository.MoveFromSubqueue(loadedMqueue, message);
+            repository.MoveFromSubqueue(queue, SubQueueType.Poison, message);
 
-            loadedMqueue = GetRepository().LoadQueue(queue);
-            loadedMqueue.Messages.Should().HaveCount(3);
-            loadedMqueue.PoisonMessages.Should().HaveCount(0);
-            var m = loadedMqueue.Messages.Single(x => x.InternalMessageId == message.InternalMessageId);
+            repository.MessagesFor(queue).Should().HaveCount(3);
+            repository.MessagesFor(queue, SubQueueType.Poison).Should().HaveCount(0);
+            var m = repository.MessagesFor(queue).Single(x => x.InternalMessageId == message.InternalMessageId);
 
             // cleanup
-            repository.MoveToSubqueue(loadedMqueue, m, SubQueueType.Poison);
+            repository.MoveToSubqueue(queue, SubQueueType.Poison, m);
         }
     }
 }

@@ -23,7 +23,7 @@
         public MainWindow()
         {
             _repository = new QueueRepository(new MessageCountService(PowerShellMethods.GetMsmqMessageCount()));
-            
+
             InitializeComponent();
             InitializeTreeview();
         }
@@ -60,7 +60,7 @@
         {
             QueueTreeView.Items.Add(grouping);
         }
-        
+
         private void OnProcessMessage(MqMessage item)
         {
             MessageListView.Items.Add(item);
@@ -76,8 +76,7 @@
                 DebugTxt.Text = "";
                 MqMessages.Clear();
 
-                _repository.LoadQueue(queue)
-                    .Messages
+                _repository.MessagesFor(queue)
                     .ToObservable()
                     .SubscribeOn(Scheduler.Default)
                     .ObserveOnDispatcher()
@@ -97,13 +96,24 @@
         private void Selector_OnSelected(object sender, SelectionChangedEventArgs e)
         {
             var queue = QueueTreeView.SelectedValue as MQueue;
-            
-            if(queue == null)
-                return;
-            int count = Int32.Parse(((ComboBoxItem) e.AddedItems[0]).Content.ToString());
 
-            _repository.LoadQueue(queue)
-                .Messages
+            if (queue == null)
+                return;
+            int count = Int32.Parse(((ComboBoxItem)e.AddedItems[0]).Content.ToString());
+
+            ShowMessagesForSelectedQueue(queue, count);
+
+            //_repository.MessagesFor(queue)
+            //    .ToObservable()
+            //    .SubscribeOn(Scheduler.Default)
+            //    .ObserveOnDispatcher()
+            //    .Take(count)
+            //    .Subscribe(OnProcessMessage, OnMessageCompleted);
+        }
+
+        private void ShowMessagesForSelectedQueue(MQueue mq, int count, SubQueueType? subQueueType = null)
+        {
+            _repository.MessagesFor(mq, subQueueType)
                 .ToObservable()
                 .SubscribeOn(Scheduler.Default)
                 .ObserveOnDispatcher()
@@ -113,11 +123,35 @@
 
         private void MessageListView_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (e.AddedItems.Count == 0)
+                return;
+
             var message = e.AddedItems[0] as MqMessage;
 
             if (message != null)
             {
                 MessageInfoTextBox.Text = message.Body;
+            }
+        }
+
+        private void ToggleButton_OnChecked(object sender, RoutedEventArgs e)
+        {
+            var radioButton = (RadioButton)sender;
+            if (radioButton.IsChecked.HasValue && radioButton.IsChecked.Value)
+            {
+                if (NumberOfMessagesComboBox == null)
+                    return;
+
+                MessageListView.Items.Clear();
+
+                var queue = QueueTreeView.SelectedValue as MQueue;
+                int count = Int32.Parse(NumberOfMessagesComboBox.Text);
+                SubQueueType? subQueueType = null;
+
+                if (radioButton.Content.ToString() == "Poison")
+                    subQueueType = SubQueueType.Poison;
+                
+                ShowMessagesForSelectedQueue(queue, count, subQueueType);
             }
         }
     }

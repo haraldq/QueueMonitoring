@@ -63,20 +63,21 @@
             return baseQueue;
         }
 
-        public LoadedMqueue LoadQueue(MQueue mq)
+        public IEnumerable<MqMessage> MessagesFor(MQueue mq, SubQueueType? subQueueType = null)
         {
-            var q = new MessageQueue(mq.Path);
-
-            var poisonPath = mq.SubQueuePath(SubQueueType.Poison);
-            var pq = new MessageQueue(poisonPath);
-            HackFixMsmqFormatNameBug(poisonPath, pq);
-
             var propertyFilter = new MessagePropertyFilter { Body = true, SentTime = true, ArrivedTime = true, Id = true };
-            q.MessageReadPropertyFilter = propertyFilter;
-            pq.MessageReadPropertyFilter = propertyFilter;
 
-            var messages = GetMessagesInternal(q).Union(GetMessagesInternal(pq, SubQueueType.Poison)).ToList();
-            return new LoadedMqueue(mq, messages);
+            if (!subQueueType.HasValue)
+            {
+                var q = new MessageQueue(mq.Path) { MessageReadPropertyFilter = propertyFilter };
+                return GetMessagesInternal(q);
+            }
+
+            var subQueuePath = mq.SubQueuePath(subQueueType);
+            var sq = new MessageQueue(subQueuePath) { MessageReadPropertyFilter = propertyFilter };
+            HackFixMsmqFormatNameBug(subQueuePath, sq);
+
+            return GetMessagesInternal(sq, subQueueType);
         }
 
         private static void HackFixMsmqFormatNameBug(string path, MessageQueue subq)
@@ -109,18 +110,18 @@
             return new MqMessage(m.Id, messageBody, m.SentTime, m.ArrivedTime, subQueueType);
         }
 
-        public void MoveToSubqueue(MQueue fromMq, MqMessage m, SubQueueType toSubQueueType)
+        public void MoveToSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, MqMessage m)
         {
-            var q = new MessageQueue(fromMq.SubQueuePath(m.SubQueueType));
+            var q = new MessageQueue(defaultMq.Path);
 
             var message = q.PeekById(m.InternalMessageId);
-            
+
             q.MoveToSubQueue(toSubQueueType.ToString().ToLower(), message);
         }
 
-        public void MoveFromSubqueue(MQueue fromMq, MqMessage m)
+        public void MoveFromSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, MqMessage m)
         {
-            var subq = new MessageQueue(fromMq.SubQueuePath(m.SubQueueType));
+            var subq = new MessageQueue(defaultMq.SubQueuePath(toSubQueueType));
 
             var message = subq.PeekById(m.InternalMessageId);
 
