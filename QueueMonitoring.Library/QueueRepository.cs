@@ -7,9 +7,8 @@
     using System.Messaging;
     using System.Reflection;
     using System.Text.RegularExpressions;
-    using Queues;
 
-    public class QueueRepository
+    public class QueueRepository : IQueueRepository
     {
         private const string PrivateQueueIdentifier = "private$\\";
         private readonly IMessageCountService _messageCountService;
@@ -59,23 +58,27 @@
             var internalName = q.QueueName;
 
             var baseQueue = new MQueue(name, internalName, _messageCountService.GetCount(q));
-
+            
             return baseQueue;
         }
 
         public IEnumerable<MqMessage> MessagesFor(MQueue mq, SubQueueType? subQueueType = null)
         {
+            return MessagesFor(mq.Path, mq.SubQueuePath(subQueueType));
+        }
+
+        public IEnumerable<MqMessage> MessagesFor(string path, string subqueuePath, SubQueueType? subQueueType = null)
+        {
             var propertyFilter = new MessagePropertyFilter { Body = true, SentTime = true, ArrivedTime = true, Id = true };
 
             if (!subQueueType.HasValue)
             {
-                var q = new MessageQueue(mq.Path) { MessageReadPropertyFilter = propertyFilter };
+                var q = new MessageQueue(path) { MessageReadPropertyFilter = propertyFilter };
                 return GetMessagesInternal(q);
             }
-
-            var subQueuePath = mq.SubQueuePath(subQueueType);
-            var sq = new MessageQueue(subQueuePath) { MessageReadPropertyFilter = propertyFilter };
-            HackFixMsmqFormatNameBug(subQueuePath, sq);
+            
+            var sq = new MessageQueue(subqueuePath) { MessageReadPropertyFilter = propertyFilter };
+            HackFixMsmqFormatNameBug(subqueuePath, sq);
 
             return GetMessagesInternal(sq, subQueueType);
         }
@@ -127,5 +130,12 @@
 
             subq.MoveFromSubQueue(message);
         }
+    }
+
+    public interface IQueueRepository
+    {
+        IEnumerable<MqGrouping> GetGroupings();
+        IEnumerable<MqMessage> MessagesFor(MQueue mq, SubQueueType? subQueueType = null);
+        IEnumerable<MqMessage> MessagesFor(string path, string subqueuePath, SubQueueType? subQueueType = null);
     }
 }

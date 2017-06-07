@@ -2,7 +2,6 @@ namespace QueueMonitoring.Library
 {
     using System.Collections.Generic;
     using System.Linq;
-    using Queues;
 
     public class MqGrouping
     {
@@ -14,7 +13,7 @@ namespace QueueMonitoring.Library
 
         public List<MQueue> Queues { get; }
 
-        public int MessagesCount => (int) Queues.Sum(x => x.MessagesCount);
+        public int MessagesCount => Queues.Sum(x => x.MessagesCount);
         public string Name { get; }
     }
 }

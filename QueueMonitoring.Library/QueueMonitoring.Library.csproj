@@ -46,14 +46,13 @@
     <Compile Include="IMessageCountService.cs" />
     <Compile Include="MqGrouping.cs" />
     <Compile Include="PowerShellMethods.cs" />
-    <Compile Include="Queues\LoadedQueue.cs" />
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="MqMessage.cs" />
-    <Compile Include="Queues\MQueue.cs" />
+    <Compile Include="MQueue.cs" />
     <Compile Include="MsmqExtensions.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="QueueRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Queues\SubQueue.cs" />
     <Compile Include="SubQueueType.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
