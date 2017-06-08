@@ -1,7 +1,7 @@
 ﻿namespace QueueMonitoring.Library
 {
+    using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Messaging;
 
     public interface IMessageCountService
@@ -20,11 +20,8 @@
 
         public int GetCount(MessageQueue queue)
         {
-            int count = 0;
-            var countKvp = _messageCount.SingleOrDefault(x => x.Key.EndsWith(queue.QueueName));
-            if (!countKvp.Equals(new KeyValuePair<string, int>()))
-                count = (int) countKvp.Value;
-            return count;
+            var key = $@"{Environment.MachineName.ToLower()}\{queue.QueueName}";
+            return _messageCount.ContainsKey(key) ? _messageCount[key] : 0;
         }
     }
 }

@@ -10,7 +10,7 @@
 
     public class QueueGroupingViewModel : ViewModelBase
     {
-        private readonly IQueueRepository _queueRepository = new QueueRepository(new MessageCountService(PowerShellMethods.GetMsmqMessageCount()));
+        private readonly IQueueRepository _queueRepository; 
 
         public IQueueRepository QueueRepository { get; }
 
@@ -19,7 +19,10 @@
             if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return; 
 
             _stopwatch.Start();
+
+            _queueRepository = new QueueRepository(new MessageCountService(PowerShellMethods.GetMsmqMessageCount()));
             QueueGroupings = new ObservableCollection<MqGroupingViewModel>(_queueRepository.GetGroupings().ToList().Select(x => new MqGroupingViewModel(x)));
+
             _stopwatch.Stop();
 
             QueueRepository = _queueRepository;

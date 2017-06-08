@@ -7,7 +7,7 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
     {
         public MqMessageViewModel(MqMessage mqMessage)
         {
-            Body = mqMessage.Body.Substring(0,150) + "...";
+            Body = mqMessage.Body.Substring(0, 100) + "...";
             ArrivedAt = mqMessage.ArrivedAt;
             SentAt = mqMessage.SentAt;
         }

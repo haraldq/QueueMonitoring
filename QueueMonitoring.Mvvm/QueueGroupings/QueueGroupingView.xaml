@@ -26,23 +26,32 @@
             <ColumnDefinition Width="*"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <TreeView Grid.RowSpan="2" ItemsSource="{Binding QueueGroupings}" SelectedItemChanged="TreeView_OnSelectedItemChanged">
-            <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type queueGroupings:MqGroupingViewModel}" ItemsSource="{Binding Queues}">
+        <TreeView Grid.RowSpan="2"  ItemsSource="{Binding QueueGroupings}" SelectedItemChanged="TreeView_OnSelectedItemChanged">
+                <TreeView.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type queueGroupings:MqGroupingViewModel}" ItemsSource="{Binding Queues}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" Margin="0,0,5,0"/>
+                            <TextBlock Text="{Binding MessagesCount}"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                    <DataTemplate DataType="{x:Type queueGroupings:MQueueViewModel}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" Margin="0,0,5,0" />
+                            <TextBlock Text="{Binding MessagesCount}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </TreeView.Resources>
+            </TreeView>
+        <ListBox Grid.Row="0" Grid.Column="1" SelectionMode="Extended" ItemsSource="{Binding SelectedGrouping.SelectedMQueue.Messages}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Name}" Margin="0,0,5,0"/>
-                        <TextBlock Text="{Binding MessagesCount}"/>
-                    </StackPanel>
-                </HierarchicalDataTemplate>
-                <DataTemplate DataType="{x:Type queueGroupings:MQueueViewModel}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Name}" Margin="0,0,5,0" />
-                        <TextBlock Text="{Binding MessagesCount}" />
+                        <TextBlock Text="{Binding SentAt}" />
+                        <TextBlock Text="{Binding Body}" />
                     </StackPanel>
                 </DataTemplate>
-            </TreeView.Resources>
-        </TreeView>
-        <ListBox Grid.Row="0" Grid.Column="2" ItemsSource="{Binding SelectedGrouping.SelectedMQueue.Messages}" />
-        <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding LoadTime}"></TextBlock>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding LoadTime}"></TextBlock>
     </Grid>
 </UserControl>

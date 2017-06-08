@@ -21,6 +21,7 @@
             _groupingDelimiter = groupingDelimiter;
             _groupingFilter = groupingFilter;
         }
+
         public IEnumerable<MqGrouping> GetGroupings()
         {
             var queues = MessageQueue.GetPrivateQueuesByMachine(".");
@@ -31,7 +32,7 @@
 
                 if (string.IsNullOrEmpty(name) || ShouldBeFilteredOut(name))
                     continue;
-
+                
                 yield return new MqGrouping(group.Select(x => GetMQueues(x, name)).ToList(), name);
             }
         }
@@ -57,7 +58,7 @@
             var name = q.QueueName.Replace($"{PrivateQueueIdentifier}{group}.", "").Trim();
             var internalName = q.QueueName;
 
-            var baseQueue = new MQueue(name, internalName, _messageCountService.GetCount(q));
+            var baseQueue = new MQueue(name, internalName,  _messageCountService.GetCount(q));
             
             return baseQueue;
         }
