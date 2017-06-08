@@ -5,12 +5,14 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
 
     public class MqMessageViewModel
     {
-        public MqMessageViewModel(MqMessage mqMessage)
+        public MqMessageViewModel(MqMessage mqMessage, int index)
         {
-            Body = mqMessage.Body.Substring(0, 100) + "...";
+            Index = index;
+            Body = mqMessage.Body;
             ArrivedAt = mqMessage.ArrivedAt;
             SentAt = mqMessage.SentAt;
         }
+        public int Index { get; }
         public DateTime ArrivedAt { get; }
         public DateTime SentAt { get; }
         public string Body { get; }

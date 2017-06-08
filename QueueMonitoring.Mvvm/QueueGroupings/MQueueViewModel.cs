@@ -4,13 +4,14 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
     using System.Linq;
     using Library;
 
-    public class MQueueViewModel
+    public class MQueueViewModel : ViewModelBase
     {
+
         public MQueueViewModel(MQueue mQueue)
         {
             MessagesCount = mQueue.MessagesCount;
             Name = mQueue.Name;
-            Messages = new ObservableCollection<MqMessageViewModel>(mQueue.Messages.Select(x => new MqMessageViewModel(x)));
+            Messages = new ObservableCollection<MqMessageViewModel>(mQueue.Messages.Select((x, index) => new MqMessageViewModel(x, index)));
             Path = mQueue.Path;
             SubqueuePath = mQueue.SubQueuePath(SubQueueType.Poison);
         }
@@ -20,5 +21,16 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
         public int MessagesCount { get; }
         public string Path { get; }
         public string SubqueuePath { get; }
+
+        private MqMessageViewModel _selectedMessage;
+        public MqMessageViewModel SelectedMessage
+        {
+            get => _selectedMessage;
+            set
+            {
+                _selectedMessage = value;
+                OnPropertyChanged(nameof(SelectedMessage));
+            }
+        }
     }
 }

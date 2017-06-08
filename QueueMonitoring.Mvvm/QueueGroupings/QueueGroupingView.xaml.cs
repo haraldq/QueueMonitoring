@@ -33,9 +33,10 @@
                 vm.SelectedGrouping.SelectedMQueue = queue;
                 if (queue.MessagesCount > 0)
                 {
+                    int index = 1;
                     foreach (var mqMessage in vm.QueueRepository.MessagesFor(queue.Path, queue.SubqueuePath))
                     {
-                        queue.Messages.Add(new MqMessageViewModel(mqMessage));
+                        queue.Messages.Add(new MqMessageViewModel(mqMessage, index++));
                     }
                 }
             }

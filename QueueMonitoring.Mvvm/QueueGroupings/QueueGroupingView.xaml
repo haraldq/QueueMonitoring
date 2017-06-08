@@ -42,16 +42,17 @@
                     </DataTemplate>
                 </TreeView.Resources>
             </TreeView>
-        <ListBox Grid.Row="0" Grid.Column="1" SelectionMode="Extended" ItemsSource="{Binding SelectedGrouping.SelectedMQueue.Messages}">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding SentAt}" />
-                        <TextBlock Text="{Binding Body}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+        <ListView Grid.Row="0" Grid.Column="1" SelectionMode="Extended" 
+                  ItemsSource="{Binding SelectedGrouping.SelectedMQueue.Messages}" SelectedItem="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Index" Width="50" DisplayMemberBinding="{Binding Index}" />
+                    <GridViewColumn Header="Sent At" Width="150" DisplayMemberBinding="{Binding SentAt}" />
+                    <GridViewColumn Header="Arrived At" Width="150" DisplayMemberBinding="{Binding ArrivedAt}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage.Body}"></TextBlock>
         <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding LoadTime}"></TextBlock>
     </Grid>
 </UserControl>
