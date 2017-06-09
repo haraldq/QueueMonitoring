@@ -10,6 +10,7 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
         public MQueueViewModel(MQueue mQueue)
         {
             MessagesCount = mQueue.MessagesCount;
+            PoisonMessagesCount = mQueue.PoisonMessagesCount;
             Name = mQueue.Name;
             Messages = new ObservableCollection<MqMessageViewModel>(mQueue.Messages.Select((x, index) => new MqMessageViewModel(x, index)));
             Path = mQueue.Path;
@@ -19,6 +20,7 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
         public string Name { get; }
         public ObservableCollection<MqMessageViewModel> Messages { get; set; }
         public int MessagesCount { get; }
+        public int PoisonMessagesCount { get; }
         public string Path { get; }
         public string SubqueuePath { get; }
 

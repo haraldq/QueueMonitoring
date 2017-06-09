@@ -34,7 +34,7 @@
                 if (queue.MessagesCount > 0)
                 {
                     int index = 1;
-                    foreach (var mqMessage in vm.QueueRepository.MessagesFor(queue.Path, queue.SubqueuePath))
+                    foreach (var mqMessage in vm.QueueRepository.MessagesFor(queue.Path, queue.SubqueuePath))//, SubQueueType.Poison))
                     {
                         queue.Messages.Add(new MqMessageViewModel(mqMessage, index++));
                     }

@@ -19,7 +19,7 @@ namespace QueueMonitoring.IntegrationTests
             CreateQueuesAndMessages();
         }
 
-        public IMessageCountService GetMessageCountService => _messageCountService ?? (_messageCountService = new MessageCountService(PowerShellMethods.GetMsmqMessageCount()));
+        public IMessageCountService GetMessageCountService => _messageCountService ?? (_messageCountService = new MessageCountService(null/*PowerShellMethods.GetMsmqMessageCount()*/));
 
         public void Dispose()
         {
@@ -86,6 +86,11 @@ namespace QueueMonitoring.IntegrationTests
         {
             var message = q.Peek();
             q.MoveToSubQueue("poison", message);
+        }
+
+        public QueueRepository GetRepository()
+        {
+            return new QueueRepository(GetMessageCountService, groupingFilter: "coon_and_friends_members");
         }
     }
 }

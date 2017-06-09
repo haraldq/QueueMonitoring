@@ -1,6 +1,5 @@
 ﻿namespace QueueMonitoring.Mvvm.QueueGroupings
 {
-    using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.ComponentModel;
     using System.Diagnostics;
@@ -10,27 +9,37 @@
 
     public class QueueGroupingViewModel : ViewModelBase
     {
-        private readonly IQueueRepository _queueRepository; 
+        private readonly Stopwatch _stopwatch = new Stopwatch();
 
-        public IQueueRepository QueueRepository { get; }
+        private MqGroupingViewModel _selectedGrouping;
 
         public QueueGroupingViewModel()
         {
-            if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return; 
+            if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
 
             _stopwatch.Start();
 
-            _queueRepository = new QueueRepository(new MessageCountService(PowerShellMethods.GetMsmqMessageCount()));
-            QueueGroupings = new ObservableCollection<MqGroupingViewModel>(_queueRepository.GetGroupings().ToList().Select(x => new MqGroupingViewModel(x)));
+            var queueRepository = new QueueRepository(new MessageCountService(/*PowerShellMethods.GetMsmqMessageCount()*/null),groupingFilter:"collectionorderprocessing");
+            QueueGroupings = new ObservableCollection<MqGroupingViewModel>(queueRepository.GetGroupings().ToList().Select(x => new MqGroupingViewModel(x)));
 
             _stopwatch.Stop();
 
-            QueueRepository = _queueRepository;
+            QueueRepository = queueRepository;
+
+            MoveToPoisonQueueCommand = new RelayCommand(MoveToPoisonQueue);
         }
 
-        public ObservableCollection<MqGroupingViewModel> QueueGroupings { get; set; }
+        private void MoveToPoisonQueue()
+        {
+            var selectedMQueue = SelectedGrouping.SelectedMQueue;
+            QueueRepository.MoveToSubqueue(selectedMQueue.Path, SubQueueType.Poison, selectedMQueue.SelectedMessage.InternalMessageId);
+        }
 
-        private MqGroupingViewModel _selectedGrouping;
+        public IQueueRepository QueueRepository { get; }
+
+        public RelayCommand MoveToPoisonQueueCommand { get; }
+
+        public ObservableCollection<MqGroupingViewModel> QueueGroupings { get; set; }
 
         public MqGroupingViewModel SelectedGrouping
         {
@@ -41,8 +50,6 @@
                 OnPropertyChanged(nameof(SelectedGrouping));
             }
         }
-
-        private readonly Stopwatch _stopwatch = new Stopwatch();
 
         public string LoadTime => $"Time loading: {_stopwatch.ElapsedMilliseconds} ms";
     }

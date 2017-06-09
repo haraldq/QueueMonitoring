@@ -20,7 +20,7 @@
 
         private QueueRepository GetRepository()
         {
-            return new QueueRepository(_fixture.GetMessageCountService, groupingFilter: "coon_and_friends_members");
+            return _fixture.GetRepository();
         }
 
         private MqGrouping GetCoonMembersGrouping()

@@ -63,6 +63,7 @@
       <DependentUpon>QueueGroupingView.xaml</DependentUpon>
     </Compile>
     <Compile Include="QueueGroupings\QueueGroupingViewModel.cs" />
+    <Compile Include="RelayCommand.cs" />
     <Compile Include="ViewModelLocator.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

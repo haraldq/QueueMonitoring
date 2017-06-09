@@ -27,21 +27,25 @@
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <TreeView Grid.RowSpan="2"  ItemsSource="{Binding QueueGroupings}" SelectedItemChanged="TreeView_OnSelectedItemChanged">
-                <TreeView.Resources>
-                    <HierarchicalDataTemplate DataType="{x:Type queueGroupings:MqGroupingViewModel}" ItemsSource="{Binding Queues}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Name}" Margin="0,0,5,0"/>
-                            <TextBlock Text="{Binding MessagesCount}"/>
-                        </StackPanel>
-                    </HierarchicalDataTemplate>
-                    <DataTemplate DataType="{x:Type queueGroupings:MQueueViewModel}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Name}" Margin="0,0,5,0" />
-                            <TextBlock Text="{Binding MessagesCount}" />
-                        </StackPanel>
-                    </DataTemplate>
-                </TreeView.Resources>
-            </TreeView>
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type queueGroupings:MqGroupingViewModel}" ItemsSource="{Binding Queues}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}" Margin="0,0,5,0"/>
+                        <TextBlock Text="{Binding MessagesCount}"/>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+                <DataTemplate DataType="{x:Type queueGroupings:MQueueViewModel}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}" Margin="0,0,5,0" />
+                        <TextBlock Text="("/>
+                        <TextBlock Text="{Binding MessagesCount}" />
+                        <TextBlock Text="/"/>
+                        <TextBlock Text="{Binding PoisonMessagesCount}" />
+                        <TextBlock Text=")"/>
+                    </StackPanel>
+                </DataTemplate>
+            </TreeView.Resources>
+        </TreeView>
         <ListView Grid.Row="0" Grid.Column="1" SelectionMode="Extended" 
                   ItemsSource="{Binding SelectedGrouping.SelectedMQueue.Messages}" SelectedItem="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage}">
             <ListView.View>
@@ -52,7 +56,10 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage.Body}"></TextBlock>
+        <StackPanel Grid.Row="1" Grid.Column="1">
+            <Button Content="Move to poison queue" Command="{Binding MoveToPoisonQueueCommand}"></Button>
+            <TextBlock  Text="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage.Body}"></TextBlock>
+        </StackPanel>
         <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding LoadTime}"></TextBlock>
     </Grid>
 </UserControl>

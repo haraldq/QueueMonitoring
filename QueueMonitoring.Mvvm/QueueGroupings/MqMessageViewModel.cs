@@ -11,10 +11,12 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
             Body = mqMessage.Body;
             ArrivedAt = mqMessage.ArrivedAt;
             SentAt = mqMessage.SentAt;
+            InternalMessageId = mqMessage.InternalMessageId;
         }
         public int Index { get; }
         public DateTime ArrivedAt { get; }
         public DateTime SentAt { get; }
         public string Body { get; }
+        public string InternalMessageId { get; }
     }
 }

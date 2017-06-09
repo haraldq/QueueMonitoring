@@ -58,7 +58,11 @@
             var name = q.QueueName.Replace($"{PrivateQueueIdentifier}{group}.", "").Trim();
             var internalName = q.QueueName;
 
-            var baseQueue = new MQueue(name, internalName,  _messageCountService.GetCount(q));
+            //TODO: make async!
+            var messagesCount = _messageCountService.GetCount(q);
+            var poisonMessagesCount = _messageCountService.GetCount(new MessageQueue(q.Path + ";poison"));
+
+            var baseQueue = new MQueue(name, internalName, messagesCount, poisonMessagesCount);
             
             return baseQueue;
         }
@@ -114,13 +118,18 @@
             return new MqMessage(m.Id, messageBody, m.SentTime, m.ArrivedTime, subQueueType);
         }
 
-        public void MoveToSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, MqMessage m)
+        public void MoveToSubqueue(string path, SubQueueType toSubQueueType, string internalMessageId)
         {
-            var q = new MessageQueue(defaultMq.Path);
+            var q = new MessageQueue(path);
 
-            var message = q.PeekById(m.InternalMessageId);
+            var message = q.PeekById(internalMessageId);
 
             q.MoveToSubQueue(toSubQueueType.ToString().ToLower(), message);
+        }
+
+        public void MoveToSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, MqMessage m)
+        {
+            MoveToSubqueue(defaultMq.Path, toSubQueueType, m.InternalMessageId);
         }
 
         public void MoveFromSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, MqMessage m)
@@ -138,5 +147,8 @@
         IEnumerable<MqGrouping> GetGroupings();
         IEnumerable<MqMessage> MessagesFor(MQueue mq, SubQueueType? subQueueType = null);
         IEnumerable<MqMessage> MessagesFor(string path, string subqueuePath, SubQueueType? subQueueType = null);
+        void MoveToSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, MqMessage m);
+        void MoveToSubqueue(string path, SubQueueType toSubQueueType, string internalMessageId);
+        void MoveFromSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, MqMessage m);
     }
 }

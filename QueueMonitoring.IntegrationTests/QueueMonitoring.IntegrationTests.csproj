@@ -66,6 +66,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MessageCountServiceTests.cs" />
     <Compile Include="MsmqFixture.cs" />
     <Compile Include="QueueRepositoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
