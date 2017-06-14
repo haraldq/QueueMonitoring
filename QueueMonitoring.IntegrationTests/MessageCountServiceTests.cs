@@ -2,6 +2,7 @@
 {
     using System.Diagnostics;
     using System.Linq;
+    using System.Threading.Tasks;
     using FluentAssertions;
     using Library;
     using Xunit;
@@ -20,9 +21,9 @@
         }
 
         [Fact]
-        public void CountingMessagesInEachQueue()
+        public async void CountingMessagesInEachQueue()
         {
-            var coonAndFriends = GetRepository().GetGroupingsAsync().Single();
+            var coonAndFriends = (await GetRepository().GetGroupingsAsync()).Single();
 
             var coonQueue = coonAndFriends.Queues.Single(x => x.Name.Contains("the_coon"));
             coonQueue.MessagesCount.Should().Be(2);
@@ -30,12 +31,12 @@
         }
 
         [Fact]
-        public void SpeedTest_ShouldLoadQueuesFast()
+        public async Task SpeedTest_ShouldLoadQueuesFast()
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-
-            var groupings = new QueueRepository(_fixture.GetMessageCountService /*, groupingFilter: "collectionorderprocessing"*/).GetGroupingsAsync().ToList();
+             
+            var groupings = await new QueueRepository(_fixture.GetMessageCountService /*, groupingFilter: "collectionorderprocessing"*/).GetGroupingsAsync();
 
             stopwatch.Stop();
 

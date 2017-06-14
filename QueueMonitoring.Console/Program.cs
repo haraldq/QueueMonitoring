@@ -2,6 +2,7 @@
 {
     using System;
     using System.Reactive.Linq;
+    using System.Reactive.Threading.Tasks;
     using IntegrationTests;
     using Library;
 
@@ -15,7 +16,7 @@
 
             var observable = queueRepository.GetGroupingsAsync().ToObservable();
 
-            observable.Subscribe(ProcessMQueue);
+            //observable.Subscribe(ProcessMQueue);
 
             Console.ReadKey();
         }

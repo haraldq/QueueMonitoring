@@ -41,7 +41,7 @@
             foreach (var group in queues.GroupBy(x => GetGroupingName(x.QueueName)))
             {
                 var name = group.Key;
-            
+
                 if (string.IsNullOrEmpty(name) || ShouldBeFilteredOut(name))
                     continue;
                 //list.Add(new MqGrouping(new List<MQueue>(), name));
@@ -56,7 +56,7 @@
             var list = queues.Select(queue => CreateMQueuesAsync(queue, groupName)).ToList();
 
             var qs = await Task.WhenAll(list);
-            
+
             return new MqGrouping(qs.ToList(), groupName);
         }
 
@@ -81,14 +81,11 @@
             var name = q.QueueName.Replace($"{PrivateQueueIdentifier}{group}.", "").Trim();
             var internalName = q.QueueName;
 
-            //var messagesCountTask = _messageCountService.GetCountAsync(q);
-            //var poisonMessagesCountTask = _messageCountService.GetCountAsync(new MessageQueue(q.Path + ";poison"));
+            var messagesCountTask = await _messageCountService.GetCountAsync(q);
 
-            //await Task.WhenAll(messagesCountTask, poisonMessagesCountTask);
-
-            await Task.Delay(500);
-
-            var baseQueue = new MQueue(name, internalName, 0, 0);// messagesCountTask, poisonMessagesCountTask);
+            var poisonMessagesCountTask = await _messageCountService.GetCountAsync(new MessageQueue(q.Path + ";poison"));
+            
+            var baseQueue = new MQueue(name, internalName, messagesCountTask, poisonMessagesCountTask);
 
             return baseQueue;
         }
