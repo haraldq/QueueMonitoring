@@ -1,5 +1,6 @@
 ﻿namespace QueueMonitoring.Mvvm.QueueGroupings
 {
+    using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.ComponentModel;
     using System.Diagnostics;
@@ -17,17 +18,26 @@
         {
             if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
 
-            _stopwatch.Start();
-
-            var queueRepository = new QueueRepository(new MessageCountService(/*PowerShellMethods.GetMsmqMessageCount()*/null),groupingFilter:"collectionorderprocessing");
-            QueueGroupings = new ObservableCollection<MqGroupingViewModel>(queueRepository.GetGroupings().ToList().Select(x => new MqGroupingViewModel(x)));
-
-            _stopwatch.Stop();
-
-            QueueRepository = queueRepository;
+            
+            QueueRepository = new QueueRepository(new MessageCountService(null));//,groupingFilter:"collectionorderprocessing");
 
             MoveToPoisonQueueCommand = new RelayCommand(MoveToPoisonQueue);
         }
+
+        public async void LoadQueues()
+        {
+            _stopwatch.Start();
+            IsLoading = true;
+
+            var mqGroupings = await QueueRepository.GetGroupingsAsync();
+            QueueGroupings = new ObservableCollection<MqGroupingViewModel>(mqGroupings.ToList().Select(x => new MqGroupingViewModel(x)));
+
+            _stopwatch.Stop();
+
+            IsLoading = false;
+            LoadTime = $"Time loading: {_stopwatch.ElapsedMilliseconds} ms";
+        }
+
 
         private void MoveToPoisonQueue()
         {
@@ -39,7 +49,17 @@
 
         public RelayCommand MoveToPoisonQueueCommand { get; }
 
-        public ObservableCollection<MqGroupingViewModel> QueueGroupings { get; set; }
+        private ObservableCollection<MqGroupingViewModel> _queueGroupings;
+        public ObservableCollection<MqGroupingViewModel> QueueGroupings {
+            get { return _queueGroupings; }
+            set
+            {
+                if (_queueGroupings != value)
+                {
+                    _queueGroupings = value;
+                    OnPropertyChanged(nameof(QueueGroupings));
+                }
+            } }
 
         public MqGroupingViewModel SelectedGrouping
         {
@@ -51,6 +71,26 @@
             }
         }
 
-        public string LoadTime => $"Time loading: {_stopwatch.ElapsedMilliseconds} ms";
+        private string _loadTime;
+        public string LoadTime
+        {
+            get => _loadTime;
+            set
+            {
+                _loadTime = value;
+                OnPropertyChanged(nameof(LoadTime));
+            }
+        }
+
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged(nameof(IsLoading));
+            }
+        }
     }
 }

@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
+# Blend for Visual Studio 15
 VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueueMonitoring.Console", "QueueMonitoring.Console\QueueMonitoring.Console.csproj", "{953C5CF9-866B-404B-9BE6-CE6E8CE4D270}"

@@ -27,7 +27,7 @@
         {
             var repository = GetRepository();
 
-            return repository.GetGroupings().Single();
+            return repository.GetGroupingsAsync().Single();
         }
 
         [Fact]
@@ -43,7 +43,7 @@
                     MessageQueue.Delete(path);
                 MessageQueue.Create(path, true);
 
-                var groupings = new QueueRepository(new Mock<IMessageCountService>().Object, groupingFilter: "queue_with_a_name_that_is_too_long").GetGroupings().ToList();
+                var groupings = new QueueRepository(new Mock<IMessageCountService>().Object, groupingFilter: "queue_with_a_name_that_is_too_long").GetGroupingsAsync().ToList();
 
                 groupings.Should().HaveCount(1);
             }
@@ -69,7 +69,7 @@
         {
             var repository = new QueueRepository(new Mock<IMessageCountService>().Object, groupingFilter: "coon_and_friends_[a-zA-Z]*");
 
-            var groupings = repository.GetGroupings().ToList();
+            var groupings = repository.GetGroupingsAsync().ToList();
 
             groupings.Should().HaveCount(2);
             groupings.Single(x => x.Name == "coon_and_friends_members").Should().NotBeNull();

@@ -22,7 +22,7 @@
         [Fact]
         public void CountingMessagesInEachQueue()
         {
-            var coonAndFriends = GetRepository().GetGroupings().Single();
+            var coonAndFriends = GetRepository().GetGroupingsAsync().Single();
 
             var coonQueue = coonAndFriends.Queues.Single(x => x.Name.Contains("the_coon"));
             coonQueue.MessagesCount.Should().Be(2);
@@ -35,7 +35,7 @@
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var groupings = new QueueRepository(_fixture.GetMessageCountService /*, groupingFilter: "collectionorderprocessing"*/).GetGroupings().ToList();
+            var groupings = new QueueRepository(_fixture.GetMessageCountService /*, groupingFilter: "collectionorderprocessing"*/).GetGroupingsAsync().ToList();
 
             stopwatch.Stop();
 

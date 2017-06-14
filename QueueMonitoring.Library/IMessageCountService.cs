@@ -6,7 +6,7 @@
 
     public interface IMessageCountService
     {
-        int GetCount(MessageQueue queue);
+        int GetCountAsync(MessageQueue queue);
     }
 
     public class MessageCountService : IMessageCountService
@@ -18,7 +18,7 @@
             _messageCount = messageCount;
         }
 
-        public int GetCount(MessageQueue queue)
+        public int GetCountAsync(MessageQueue queue)
         {
             //var key = $@"{Environment.MachineName.ToLower()}\{queue.QueueName}";
             //return _messageCount.ContainsKey(key) ? _messageCount[key] : 0;

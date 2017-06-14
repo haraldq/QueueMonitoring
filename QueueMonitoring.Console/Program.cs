@@ -13,7 +13,7 @@
 
             new MsmqFixture().CreateQueuesAndMessages();
 
-            var observable = queueRepository.GetGroupings().ToObservable();
+            var observable = queueRepository.GetGroupingsAsync().ToObservable();
 
             observable.Subscribe(ProcessMQueue);
 

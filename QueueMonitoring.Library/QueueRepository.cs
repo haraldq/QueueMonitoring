@@ -7,6 +7,7 @@
     using System.Messaging;
     using System.Reflection;
     using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
 
     public class QueueRepository : IQueueRepository
     {
@@ -22,19 +23,41 @@
             _groupingFilter = groupingFilter;
         }
 
-        public IEnumerable<MqGrouping> GetGroupings()
+        public async Task<IEnumerable<MqGrouping>> GetGroupingsAsync()
         {
             var queues = MessageQueue.GetPrivateQueuesByMachine(".");
 
+            //foreach (var group in queues.GroupBy(x => GetGroupingName(x.QueueName)))
+            //{
+            //    var name = group.Key;
+
+            //    if (string.IsNullOrEmpty(name) || ShouldBeFilteredOut(name))
+            //        continue;
+
+            //     yield return CreateGroupingAsync(group, name);
+            //}
+
+            var list = new List<MqGrouping>();
             foreach (var group in queues.GroupBy(x => GetGroupingName(x.QueueName)))
             {
                 var name = group.Key;
-
+            
                 if (string.IsNullOrEmpty(name) || ShouldBeFilteredOut(name))
                     continue;
-                
-                yield return new MqGrouping(group.Select(x => GetMQueues(x, name)).ToList(), name);
+                //list.Add(new MqGrouping(new List<MQueue>(), name));
+                list.Add(await CreateGroupingAsync(group.ToList(), name));
             }
+
+            return list;
+        }
+
+        private async Task<MqGrouping> CreateGroupingAsync(List<MessageQueue> queues, string groupName)
+        {
+            var list = queues.Select(queue => CreateMQueuesAsync(queue, groupName)).ToList();
+
+            var qs = await Task.WhenAll(list);
+            
+            return new MqGrouping(qs.ToList(), groupName);
         }
 
         private bool ShouldBeFilteredOut(string group)
@@ -53,17 +76,20 @@
 
             return queueName.Substring(0, indexOfGroupingDelimiter);
         }
-        private MQueue GetMQueues(MessageQueue q, string group)
+        private async Task<MQueue> CreateMQueuesAsync(MessageQueue q, string group)
         {
             var name = q.QueueName.Replace($"{PrivateQueueIdentifier}{group}.", "").Trim();
             var internalName = q.QueueName;
 
-            //TODO: make async!
-            var messagesCount = _messageCountService.GetCount(q);
-            var poisonMessagesCount = _messageCountService.GetCount(new MessageQueue(q.Path + ";poison"));
+            //var messagesCountTask = _messageCountService.GetCountAsync(q);
+            //var poisonMessagesCountTask = _messageCountService.GetCountAsync(new MessageQueue(q.Path + ";poison"));
 
-            var baseQueue = new MQueue(name, internalName, messagesCount, poisonMessagesCount);
-            
+            //await Task.WhenAll(messagesCountTask, poisonMessagesCountTask);
+
+            await Task.Delay(500);
+
+            var baseQueue = new MQueue(name, internalName, 0, 0);// messagesCountTask, poisonMessagesCountTask);
+
             return baseQueue;
         }
 
@@ -81,7 +107,7 @@
                 var q = new MessageQueue(path) { MessageReadPropertyFilter = propertyFilter };
                 return GetMessagesInternal(q);
             }
-            
+
             var sq = new MessageQueue(subqueuePath) { MessageReadPropertyFilter = propertyFilter };
             HackFixMsmqFormatNameBug(subqueuePath, sq);
 
@@ -144,7 +170,7 @@
 
     public interface IQueueRepository
     {
-        IEnumerable<MqGrouping> GetGroupings();
+        Task<IEnumerable<MqGrouping>> GetGroupingsAsync();
         IEnumerable<MqMessage> MessagesFor(MQueue mq, SubQueueType? subQueueType = null);
         IEnumerable<MqMessage> MessagesFor(string path, string subqueuePath, SubQueueType? subQueueType = null);
         void MoveToSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, MqMessage m);

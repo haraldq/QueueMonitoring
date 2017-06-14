@@ -1,51 +1,69 @@
-﻿<UserControl x:Class="QueueMonitoring.Mvvm.QueueGroupings.QueueGroupingView"
+﻿<UserControl
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:QueueMonitoring.Mvvm"
              xmlns:queueGroupings="clr-namespace:QueueMonitoring.Mvvm.QueueGroupings"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
+             xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             x:Class="QueueMonitoring.Mvvm.QueueGroupings.QueueGroupingView"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300"
              local:ViewModelLocator.AutoWireViewModel="True" >
     <UserControl.Resources>
         <DataTemplate DataType="{x:Type queueGroupings:MqMessageViewModel}">
             <StackPanel>
-                <TextBlock Text="{Binding ArrivedAt}"></TextBlock>
-                <TextBlock Text="{Binding Body}"></TextBlock>
+                <TextBlock Text="{Binding ArrivedAt}"/>
+                <TextBlock Text="{Binding Body}"/>
             </StackPanel>
         </DataTemplate>
     </UserControl.Resources>
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <ei:CallMethodAction TargetObject="{Binding}" MethodName="LoadQueues"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <TreeView Grid.RowSpan="2"  ItemsSource="{Binding QueueGroupings}" SelectedItemChanged="TreeView_OnSelectedItemChanged">
-            <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type queueGroupings:MqGroupingViewModel}" ItemsSource="{Binding Queues}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Name}" Margin="0,0,5,0"/>
-                        <TextBlock Text="{Binding MessagesCount}"/>
-                    </StackPanel>
-                </HierarchicalDataTemplate>
-                <DataTemplate DataType="{x:Type queueGroupings:MQueueViewModel}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Name}" Margin="0,0,5,0" />
-                        <TextBlock Text="("/>
-                        <TextBlock Text="{Binding MessagesCount}" />
-                        <TextBlock Text="/"/>
-                        <TextBlock Text="{Binding PoisonMessagesCount}" />
-                        <TextBlock Text=")"/>
-                    </StackPanel>
-                </DataTemplate>
-            </TreeView.Resources>
-        </TreeView>
+        <xctk:BusyIndicator Grid.RowSpan="2"  IsBusy="{Binding IsLoading}" Name="busyIndicator">
+            <xctk:BusyIndicator.BusyContent>
+                <StackPanel>
+                    <TextBlock HorizontalAlignment="Center">Loading queues...</TextBlock>
+                </StackPanel>
+            </xctk:BusyIndicator.BusyContent>
+            <xctk:BusyIndicator.Content>
+                <TreeView  ItemsSource="{Binding QueueGroupings}" SelectedItemChanged="TreeView_OnSelectedItemChanged">
+                    <TreeView.Resources>
+                        <HierarchicalDataTemplate DataType="{x:Type queueGroupings:MqGroupingViewModel}" ItemsSource="{Binding Queues}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Name}" Margin="0,0,5,0"/>
+                                <TextBlock Text="{Binding MessagesCount}"/>
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                        <DataTemplate DataType="{x:Type queueGroupings:MQueueViewModel}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Name}" Margin="0,0,5,0" />
+                                <TextBlock Text="("/>
+                                <TextBlock Text="{Binding MessagesCount}" />
+                                <TextBlock Text="/"/>
+                                <TextBlock Text="{Binding PoisonMessagesCount}" />
+                                <TextBlock Text=")"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </TreeView.Resources>
+                </TreeView>
+            </xctk:BusyIndicator.Content>
+        </xctk:BusyIndicator>
         <ListView Grid.Row="0" Grid.Column="1" SelectionMode="Extended" 
                   ItemsSource="{Binding SelectedGrouping.SelectedMQueue.Messages}" SelectedItem="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage}">
             <ListView.View>
@@ -57,9 +75,9 @@
             </ListView.View>
         </ListView>
         <StackPanel Grid.Row="1" Grid.Column="1">
-            <Button Content="Move to poison queue" Command="{Binding MoveToPoisonQueueCommand}"></Button>
-            <TextBlock  Text="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage.Body}"></TextBlock>
+            <Button Content="Move to poison queue" Command="{Binding MoveToPoisonQueueCommand}"/>
+            <TextBlock  Text="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage.Body}"/>
         </StackPanel>
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding LoadTime}"></TextBlock>
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding LoadTime}"/>
     </Grid>
 </UserControl>
