@@ -19,7 +19,7 @@
             if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
 
             
-            QueueRepository = new QueueRepository(new MessageCountService(null));//,groupingFilter:"collectionorderprocessing");
+            QueueRepository = new QueueRepository(new MessageCountService());//,groupingFilter:"collectionorderprocessing");
 
             MoveToPoisonQueueCommand = new RelayCommand(MoveToPoisonQueue);
         }

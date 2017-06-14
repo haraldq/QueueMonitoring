@@ -19,7 +19,7 @@ namespace QueueMonitoring.IntegrationTests
             CreateQueuesAndMessages();
         }
 
-        public IMessageCountService GetMessageCountService => _messageCountService ?? (_messageCountService = new MessageCountService(null/*PowerShellMethods.GetMsmqMessageCount()*/));
+        public IMessageCountService GetMessageCountService => _messageCountService ?? (_messageCountService = new MessageCountService());
 
         public void Dispose()
         {

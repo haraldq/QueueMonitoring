@@ -84,7 +84,7 @@
             var messagesCountTask = await _messageCountService.GetCountAsync(q);
 
             var poisonMessagesCountTask = await _messageCountService.GetCountAsync(new MessageQueue(q.Path + ";poison"));
-            
+
             var baseQueue = new MQueue(name, internalName, messagesCountTask, poisonMessagesCountTask);
 
             return baseQueue;

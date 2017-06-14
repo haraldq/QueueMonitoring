@@ -10,7 +10,7 @@
     {
         private static void Main(string[] args)
         {
-            var queueRepository = new QueueRepository(new MessageCountService(PowerShellMethods.GetMsmqMessageCount()));
+            var queueRepository = new QueueRepository(new MessageCountService());
 
             new MsmqFixture().CreateQueuesAndMessages();
 
