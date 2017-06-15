@@ -6,19 +6,18 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
 
     public class MQueueViewModel : ViewModelBase
     {
-
         public MQueueViewModel(MQueue mQueue)
         {
             MessagesCount = mQueue.MessagesCount;
             PoisonMessagesCount = mQueue.PoisonMessagesCount;
             Name = mQueue.Name;
-            Messages = new ObservableCollection<MqMessageViewModel>(mQueue.Messages.Select((x, index) => new MqMessageViewModel(x, index)));
+            Messages = new ObservableCollection<MqMessageViewModel>();
+            PoisonMessages = new ObservableCollection<MqMessageViewModel>();
             Path = mQueue.Path;
             SubqueuePath = mQueue.SubQueuePath(SubQueueType.Poison);
         }
 
         public string Name { get; }
-        public ObservableCollection<MqMessageViewModel> Messages { get; set; }
         public int MessagesCount { get; }
         public int PoisonMessagesCount { get; }
         public string Path { get; }
@@ -32,6 +31,28 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
             {
                 _selectedMessage = value;
                 OnPropertyChanged(nameof(SelectedMessage));
+            }
+        }
+
+        private ObservableCollection<MqMessageViewModel> _messages;
+        public ObservableCollection<MqMessageViewModel> Messages
+        {
+            get => _messages;
+            set
+            {
+                _messages = value;
+                OnPropertyChanged(nameof(Messages));
+            }
+        }
+
+        private ObservableCollection<MqMessageViewModel> _poisonMessages;
+        public ObservableCollection<MqMessageViewModel> PoisonMessages
+        {
+            get => _poisonMessages;
+            set
+            {
+                _poisonMessages = value;
+                OnPropertyChanged(nameof(PoisonMessages));
             }
         }
     }

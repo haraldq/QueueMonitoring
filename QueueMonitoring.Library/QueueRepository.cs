@@ -37,7 +37,7 @@
                 list.Add(await CreateGroupingAsync(group.ToList(), name));
             }
 
-            return list;
+            return list.OrderByDescending(x => x.TotalMessagesCount).ThenBy(x => x.Name);
         }
 
         private async Task<MqGrouping> CreateGroupingAsync(List<MessageQueue> queues, string groupName)
@@ -46,7 +46,7 @@
 
             var qs = await Task.WhenAll(list);
 
-            return new MqGrouping(qs.ToList(), groupName);
+            return new MqGrouping(qs.OrderByDescending(x => x.TotalMessagesCount).ThenBy(x => x.Name).ToList(), groupName);
         }
 
         private bool ShouldBeFilteredOut(string group)

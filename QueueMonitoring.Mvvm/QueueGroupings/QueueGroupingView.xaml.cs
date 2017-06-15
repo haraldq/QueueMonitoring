@@ -38,6 +38,10 @@
                     {
                         queue.Messages.Add(new MqMessageViewModel(mqMessage, index++));
                     }
+                    foreach (var mqMessage in vm.QueueRepository.MessagesFor(queue.Path, queue.SubqueuePath, SubQueueType.Poison))
+                    {
+                        queue.PoisonMessages.Add(new MqMessageViewModel(mqMessage, index++));
+                    }
                 }
             }
         }

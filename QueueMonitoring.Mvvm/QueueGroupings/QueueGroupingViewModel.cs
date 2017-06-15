@@ -1,9 +1,9 @@
 ﻿namespace QueueMonitoring.Mvvm.QueueGroupings
 {
-    using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.ComponentModel;
     using System.Diagnostics;
+    using System.Diagnostics.Eventing.Reader;
     using System.Linq;
     using System.Windows;
     using Library;
@@ -17,9 +17,8 @@
         public QueueGroupingViewModel()
         {
             if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
-
             
-            QueueRepository = new QueueRepository(new MessageCountService());//,groupingFilter:"collectionorderprocessing");
+            QueueRepository = new QueueRepository(new MessageCountService());
 
             MoveToPoisonQueueCommand = new RelayCommand(MoveToPoisonQueue);
         }
@@ -33,7 +32,7 @@
             QueueGroupings = new ObservableCollection<MqGroupingViewModel>(mqGroupings.ToList().Select(x => new MqGroupingViewModel(x)));
 
             _stopwatch.Stop();
-
+            
             IsLoading = false;
             LoadTime = $"Time loading: {_stopwatch.ElapsedMilliseconds} ms";
         }
@@ -43,6 +42,25 @@
         {
             var selectedMQueue = SelectedGrouping.SelectedMQueue;
             QueueRepository.MoveToSubqueue(selectedMQueue.Path, SubQueueType.Poison, selectedMQueue.SelectedMessage.InternalMessageId);
+
+            RebindSelectedMqueueMessages();
+          }
+
+        private void RebindSelectedMqueueMessages()
+        {
+            SelectedGrouping.SelectedMQueue.Messages.Clear();
+            SelectedGrouping.SelectedMQueue.PoisonMessages.Clear();
+            int index = 1;
+            foreach (var mqMessage in QueueRepository.MessagesFor(SelectedGrouping.SelectedMQueue.Path, SelectedGrouping.SelectedMQueue.SubqueuePath))
+            {
+                SelectedGrouping.SelectedMQueue.Messages.Add(new MqMessageViewModel(mqMessage, index++));
+            }
+
+            index = 1;
+            foreach (var mqMessage in QueueRepository.MessagesFor(SelectedGrouping.SelectedMQueue.Path, SelectedGrouping.SelectedMQueue.SubqueuePath, SubQueueType.Poison))
+            {
+                SelectedGrouping.SelectedMQueue.PoisonMessages.Add(new MqMessageViewModel(mqMessage, index++));
+            }
         }
 
         public IQueueRepository QueueRepository { get; }
