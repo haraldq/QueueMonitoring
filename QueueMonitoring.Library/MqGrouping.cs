@@ -13,7 +13,7 @@ namespace QueueMonitoring.Library
 
         public List<MQueue> Queues { get; }
 
-        public int MessagesCount => Queues.Sum(x => x.MessagesCount);
+        public int TotalMessagesCount => Queues.Sum(x => x.TotalMessagesCount);
         public string Name { get; }
     }
 }

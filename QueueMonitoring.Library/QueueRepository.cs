@@ -26,17 +26,7 @@
         public async Task<IEnumerable<MqGrouping>> GetGroupingsAsync()
         {
             var queues = MessageQueue.GetPrivateQueuesByMachine(".");
-
-            //foreach (var group in queues.GroupBy(x => GetGroupingName(x.QueueName)))
-            //{
-            //    var name = group.Key;
-
-            //    if (string.IsNullOrEmpty(name) || ShouldBeFilteredOut(name))
-            //        continue;
-
-            //     yield return CreateGroupingAsync(group, name);
-            //}
-
+            
             var list = new List<MqGrouping>();
             foreach (var group in queues.GroupBy(x => GetGroupingName(x.QueueName)))
             {
@@ -44,7 +34,6 @@
 
                 if (string.IsNullOrEmpty(name) || ShouldBeFilteredOut(name))
                     continue;
-                //list.Add(new MqGrouping(new List<MQueue>(), name));
                 list.Add(await CreateGroupingAsync(group.ToList(), name));
             }
 
@@ -92,7 +81,7 @@
 
         public IEnumerable<MqMessage> MessagesFor(MQueue mq, SubQueueType? subQueueType = null)
         {
-            return MessagesFor(mq.Path, mq.SubQueuePath(subQueueType));
+            return MessagesFor(mq.Path, mq.SubQueuePath(subQueueType), subQueueType);
         }
 
         public IEnumerable<MqMessage> MessagesFor(string path, string subqueuePath, SubQueueType? subQueueType = null)

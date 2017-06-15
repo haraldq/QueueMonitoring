@@ -17,6 +17,7 @@ namespace QueueMonitoring.Library
         public string InternalName { get; }
         public int MessagesCount { get; }
         public int PoisonMessagesCount { get; }
+        public int TotalMessagesCount => MessagesCount + PoisonMessagesCount;
         public string Path => ".\\" + InternalName;
         public List<MqMessage> Messages { get; set; }
 
