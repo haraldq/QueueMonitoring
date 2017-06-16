@@ -17,7 +17,7 @@
         public QueueGroupingViewModel()
         {
             if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
-            
+
             QueueRepository = new QueueRepository(new MessageCountService());
 
             MoveToPoisonQueueCommand = new RelayCommand(MoveToPoisonQueue);
@@ -32,7 +32,7 @@
             QueueGroupings = new ObservableCollection<MqGroupingViewModel>(mqGroupings.ToList().Select(x => new MqGroupingViewModel(x)));
 
             _stopwatch.Stop();
-            
+
             IsLoading = false;
             LoadTime = $"Time loading: {_stopwatch.ElapsedMilliseconds} ms";
         }
@@ -41,10 +41,12 @@
         private void MoveToPoisonQueue()
         {
             var selectedMQueue = SelectedGrouping.SelectedMQueue;
-            QueueRepository.MoveToSubqueue(selectedMQueue.Path, SubQueueType.Poison, selectedMQueue.SelectedMessage.InternalMessageId);
+            var selectedMessages = selectedMQueue.Messages.Where(x => x.IsSelected).Select(x => x.InternalMessageId);
+
+            QueueRepository.MoveToSubqueue(selectedMQueue.Path, SubQueueType.Poison, selectedMessages);
 
             RebindSelectedMqueueMessages();
-          }
+        }
 
         private void RebindSelectedMqueueMessages()
         {
@@ -68,7 +70,8 @@
         public RelayCommand MoveToPoisonQueueCommand { get; }
 
         private ObservableCollection<MqGroupingViewModel> _queueGroupings;
-        public ObservableCollection<MqGroupingViewModel> QueueGroupings {
+        public ObservableCollection<MqGroupingViewModel> QueueGroupings
+        {
             get { return _queueGroupings; }
             set
             {
@@ -77,7 +80,8 @@
                     _queueGroupings = value;
                     OnPropertyChanged(nameof(QueueGroupings));
                 }
-            } }
+            }
+        }
 
         public MqGroupingViewModel SelectedGrouping
         {

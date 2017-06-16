@@ -146,9 +146,14 @@
 
         public void MoveToSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, IEnumerable<MqMessage> messages)
         {
-            foreach (var m in messages)
+            MoveToSubqueue(defaultMq.Path, toSubQueueType, messages.Select(x => x.InternalMessageId));
+        }
+
+        public void MoveToSubqueue(string path, SubQueueType toSubQueueType, IEnumerable<string> internalMessageIds)
+        {
+            foreach (var id in internalMessageIds)
             {
-                MoveToSubqueue(defaultMq.Path, toSubQueueType, m.InternalMessageId);
+                MoveToSubqueue(path, toSubQueueType, id);
             }
         }
 
@@ -168,6 +173,11 @@
                 MoveFromSubqueue(defaultMq, toSubQueueType, m);
             }
         }
+
+        public void MoveFromSubqueue(string path, SubQueueType toSubQueueType, IEnumerable<string> internalMessageIds)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public interface IQueueRepository
@@ -177,6 +187,10 @@
         IEnumerable<MqMessage> MessagesFor(string path, string subqueuePath, SubQueueType? subQueueType = null);
         void MoveToSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, MqMessage m);
         void MoveToSubqueue(string path, SubQueueType toSubQueueType, string internalMessageId);
+        void MoveToSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, IEnumerable<MqMessage> messages);
+        void MoveToSubqueue(string path, SubQueueType toSubQueueType, IEnumerable<string> internalMessageIds);
         void MoveFromSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, MqMessage m);
+        void MoveFromSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, IEnumerable<MqMessage> messages);
+        void MoveFromSubqueue(string path, SubQueueType toSubQueueType, IEnumerable<string> internalMessageIds);
     }
 }

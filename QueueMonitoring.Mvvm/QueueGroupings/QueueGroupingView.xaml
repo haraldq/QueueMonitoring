@@ -74,7 +74,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <ListView SelectionMode="Extended"  Grid.Row="0" Grid.Column="0"
-                  ItemsSource="{Binding SelectedGrouping.SelectedMQueue.Messages}" SelectedItem="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage}">
+                  ItemsSource="{Binding SelectedGrouping.SelectedMQueue.Messages}">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Index" Width="50" DisplayMemberBinding="{Binding Index}" />
@@ -82,12 +82,23 @@
                         <GridViewColumn Header="Arrived At" Width="150" DisplayMemberBinding="{Binding ArrivedAt}" />
                     </GridView>
                 </ListView.View>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListViewItem}">
+                        <Setter Property="IsSelected" Value="{Binding Mode=TwoWay, Path=IsSelected}"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
             </ListView>
             <Button  Grid.Row="1" Grid.Column="0" Content="Move to poison queue" Command="{Binding MoveToPoisonQueueCommand}"/>
         </Grid>
-        <StackPanel  Grid.Row="1" Grid.Column="1">
-            <ListView SelectionMode="Extended" 
-                  ItemsSource="{Binding SelectedGrouping.SelectedMQueue.PoisonMessages}" SelectedItem="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage}">
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <ListView SelectionMode="Extended" ItemsSource="{Binding SelectedGrouping.SelectedMQueue.PoisonMessages}">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Index" Width="50" DisplayMemberBinding="{Binding Index}" />
@@ -95,10 +106,15 @@
                         <GridViewColumn Header="Arrived At" Width="150" DisplayMemberBinding="{Binding ArrivedAt}" />
                     </GridView>
                 </ListView.View>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListViewItem}">
+                        <Setter Property="IsSelected" Value="{Binding Mode=TwoWay, Path=IsSelected}"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
             </ListView>
-        </StackPanel>
+        </Grid>
         <StackPanel Grid.Row="2" Grid.Column="1">
-            <TextBlock  Text="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage.Body}"/>
+            <!--<TextBlock  Text="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage.Body}"/>-->
         </StackPanel>
         <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding LoadTime}"/>
     </Grid>

@@ -1,11 +1,16 @@
 namespace QueueMonitoring.Mvvm.QueueGroupings
 {
     using System.Collections.ObjectModel;
-    using System.Linq;
     using Library;
 
     public class MQueueViewModel : ViewModelBase
     {
+        private ObservableCollection<MqMessageViewModel> _messages;
+
+        private ObservableCollection<MqMessageViewModel> _poisonMessages;
+
+        private MqMessageViewModel _selectedMessage;
+
         public MQueueViewModel(MQueue mQueue)
         {
             MessagesCount = mQueue.MessagesCount;
@@ -22,8 +27,7 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
         public int PoisonMessagesCount { get; }
         public string Path { get; }
         public string SubqueuePath { get; }
-        
-        private MqMessageViewModel _selectedMessage;
+
         public MqMessageViewModel SelectedMessage
         {
             get => _selectedMessage;
@@ -34,7 +38,6 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
             }
         }
 
-        private ObservableCollection<MqMessageViewModel> _messages;
         public ObservableCollection<MqMessageViewModel> Messages
         {
             get => _messages;
@@ -45,7 +48,6 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
             }
         }
 
-        private ObservableCollection<MqMessageViewModel> _poisonMessages;
         public ObservableCollection<MqMessageViewModel> PoisonMessages
         {
             get => _poisonMessages;

@@ -3,7 +3,7 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
     using System;
     using Library;
 
-    public class MqMessageViewModel
+    public class MqMessageViewModel : ViewModelBase
     {
         public MqMessageViewModel(MqMessage mqMessage, int index)
         {
@@ -18,5 +18,16 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
         public DateTime SentAt { get; }
         public string Body { get; }
         public string InternalMessageId { get; }
+
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                _isSelected = value;
+                OnPropertyChanged(nameof(IsSelected));
+            }
+        }
     }
 }
