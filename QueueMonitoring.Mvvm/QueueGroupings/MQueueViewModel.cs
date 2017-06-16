@@ -22,7 +22,7 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
         public int PoisonMessagesCount { get; }
         public string Path { get; }
         public string SubqueuePath { get; }
-
+        
         private MqMessageViewModel _selectedMessage;
         public MqMessageViewModel SelectedMessage
         {

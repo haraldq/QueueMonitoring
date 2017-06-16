@@ -26,7 +26,7 @@
         public async Task<IEnumerable<MqGrouping>> GetGroupingsAsync()
         {
             var queues = MessageQueue.GetPrivateQueuesByMachine(".");
-            
+
             var list = new List<MqGrouping>();
             foreach (var group in queues.GroupBy(x => GetGroupingName(x.QueueName)))
             {
@@ -144,6 +144,14 @@
             MoveToSubqueue(defaultMq.Path, toSubQueueType, m.InternalMessageId);
         }
 
+        public void MoveToSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, IEnumerable<MqMessage> messages)
+        {
+            foreach (var m in messages)
+            {
+                MoveToSubqueue(defaultMq.Path, toSubQueueType, m.InternalMessageId);
+            }
+        }
+
         public void MoveFromSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, MqMessage m)
         {
             var subq = new MessageQueue(defaultMq.SubQueuePath(toSubQueueType));
@@ -151,6 +159,14 @@
             var message = subq.PeekById(m.InternalMessageId);
 
             subq.MoveFromSubQueue(message);
+        }
+
+        public void MoveFromSubqueue(MQueue defaultMq, SubQueueType toSubQueueType, IEnumerable<MqMessage> messages)
+        {
+            foreach (var m in messages)
+            {
+                MoveFromSubqueue(defaultMq, toSubQueueType, m);
+            }
         }
     }
 

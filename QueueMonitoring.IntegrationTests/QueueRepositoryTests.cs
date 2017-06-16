@@ -171,5 +171,27 @@
             // cleanup
             repository.MoveToSubqueue(queue, SubQueueType.Poison, m);
         }
+
+        [Fact]
+        public async void MovingMultipleMessagesToSubqueue()
+        {
+            var grouping = await GetCoonMembersGrouping();
+            var queue = grouping.Queues.Single(x => x.Name == _fixture.QueueNames[0]);
+
+            var repository = GetRepository();
+            var messages = repository.MessagesFor(queue).ToList();
+            var poisonMessagesCount = repository.MessagesFor(queue, SubQueueType.Poison).ToList().Count;
+            var messagesCount = messages.Count;
+            
+            repository.MoveToSubqueue(queue, SubQueueType.Poison, messages);
+
+            repository.MessagesFor(queue).Should().HaveCount(0);
+            var poisonMessages = repository.MessagesFor(queue, SubQueueType.Poison).ToList();
+            poisonMessages.Should().HaveCount(messagesCount + poisonMessagesCount);
+            
+            // cleanup
+            repository.MoveFromSubqueue(queue, SubQueueType.Poison, poisonMessages);
+        }
+
     }
 }

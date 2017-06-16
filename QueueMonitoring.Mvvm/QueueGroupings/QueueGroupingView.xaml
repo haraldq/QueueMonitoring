@@ -65,28 +65,39 @@
                 </TreeView>
             </xctk:BusyIndicator.Content>
         </xctk:BusyIndicator>
-        <ListView Grid.Row="0" Grid.Column="1" SelectionMode="Extended" 
+        <Grid Grid.Row="0" Grid.Column="1" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <ListView SelectionMode="Extended"  Grid.Row="0" Grid.Column="0"
                   ItemsSource="{Binding SelectedGrouping.SelectedMQueue.Messages}" SelectedItem="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage}">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Index" Width="50" DisplayMemberBinding="{Binding Index}" />
-                    <GridViewColumn Header="Sent At" Width="150" DisplayMemberBinding="{Binding SentAt}" />
-                    <GridViewColumn Header="Arrived At" Width="150" DisplayMemberBinding="{Binding ArrivedAt}" />
-                </GridView>
-            </ListView.View>
-        </ListView>
-        <ListView Grid.Row="1" Grid.Column="1" SelectionMode="Extended" 
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Index" Width="50" DisplayMemberBinding="{Binding Index}" />
+                        <GridViewColumn Header="Sent At" Width="150" DisplayMemberBinding="{Binding SentAt}" />
+                        <GridViewColumn Header="Arrived At" Width="150" DisplayMemberBinding="{Binding ArrivedAt}" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <Button  Grid.Row="1" Grid.Column="0" Content="Move to poison queue" Command="{Binding MoveToPoisonQueueCommand}"/>
+        </Grid>
+        <StackPanel  Grid.Row="1" Grid.Column="1">
+            <ListView SelectionMode="Extended" 
                   ItemsSource="{Binding SelectedGrouping.SelectedMQueue.PoisonMessages}" SelectedItem="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage}">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Index" Width="50" DisplayMemberBinding="{Binding Index}" />
-                    <GridViewColumn Header="Sent At" Width="150" DisplayMemberBinding="{Binding SentAt}" />
-                    <GridViewColumn Header="Arrived At" Width="150" DisplayMemberBinding="{Binding ArrivedAt}" />
-                </GridView>
-            </ListView.View>
-        </ListView>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Index" Width="50" DisplayMemberBinding="{Binding Index}" />
+                        <GridViewColumn Header="Sent At" Width="150" DisplayMemberBinding="{Binding SentAt}" />
+                        <GridViewColumn Header="Arrived At" Width="150" DisplayMemberBinding="{Binding ArrivedAt}" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </StackPanel>
         <StackPanel Grid.Row="2" Grid.Column="1">
-            <Button Content="Move to poison queue" Command="{Binding MoveToPoisonQueueCommand}"/>
             <TextBlock  Text="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage.Body}"/>
         </StackPanel>
         <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding LoadTime}"/>
