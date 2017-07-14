@@ -21,6 +21,7 @@
             QueueRepository = new QueueRepository(new MessageCountService());
 
             MoveToPoisonQueueCommand = new RelayCommand(MoveToPoisonQueue);
+            MoveToDefaultQueueCommand = new RelayCommand(MoveToDefaultQueue);
         }
 
         public async void LoadQueues()
@@ -48,6 +49,16 @@
             RebindSelectedMqueueMessages();
         }
 
+        private void MoveToDefaultQueue()
+        {
+            var selectedMQueue = SelectedGrouping.SelectedMQueue;
+            var selectedMessages = selectedMQueue.PoisonMessages.Where(x => x.IsSelected).Select(x => x.InternalMessageId);
+
+            QueueRepository.MoveFromSubqueue(selectedMQueue.Path, SubQueueType.Poison, selectedMessages);
+
+            RebindSelectedMqueueMessages();
+        }
+
         private void RebindSelectedMqueueMessages()
         {
             SelectedGrouping.SelectedMQueue.Messages.Clear();
@@ -68,6 +79,7 @@
         public IQueueRepository QueueRepository { get; }
 
         public RelayCommand MoveToPoisonQueueCommand { get; }
+        public RelayCommand MoveToDefaultQueueCommand { get;  }
 
         private ObservableCollection<MqGroupingViewModel> _queueGroupings;
         public ObservableCollection<MqGroupingViewModel> QueueGroupings

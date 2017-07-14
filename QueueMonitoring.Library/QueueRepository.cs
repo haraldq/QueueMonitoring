@@ -174,9 +174,21 @@
             }
         }
 
+        public void MoveFromSubqueue(string path, SubQueueType toSubQueueType, string internalMessageId)
+        {
+            var subq = new MessageQueue(path + ";" + toSubQueueType);
+
+            var message = subq.PeekById(internalMessageId);
+
+            subq.MoveFromSubQueue(message);
+        }
+
         public void MoveFromSubqueue(string path, SubQueueType toSubQueueType, IEnumerable<string> internalMessageIds)
         {
-            throw new NotImplementedException();
+            foreach (var id in internalMessageIds)
+            {
+                MoveFromSubqueue(path, toSubQueueType, id);
+            }
         }
     }
 
