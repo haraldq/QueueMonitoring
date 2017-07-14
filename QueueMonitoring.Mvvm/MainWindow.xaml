@@ -6,7 +6,7 @@
         xmlns:queueGroupings="clr-namespace:QueueMonitoring.Mvvm.QueueGroupings"
         xmlns:local="clr-namespace:QueueMonitoring.Mvvm"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="50" Width="525" WindowState="Maximized">
     <Grid>
         <queueGroupings:QueueGroupingView/>
     </Grid>
