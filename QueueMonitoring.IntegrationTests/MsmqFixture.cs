@@ -4,6 +4,13 @@ namespace QueueMonitoring.IntegrationTests
     using System.Collections.Generic;
     using System.Messaging;
     using Library;
+    using Xunit;
+
+    [CollectionDefinition("Msmq Collection")]
+    public class MsmqCollection : ICollectionFixture<MsmqFixture>
+    {
+        
+    }
 
     public class MsmqFixture : IDisposable
     {

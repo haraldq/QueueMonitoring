@@ -7,7 +7,8 @@
     using Library;
     using Xunit;
 
-    public class MessageCountServiceTests : IClassFixture<MsmqFixture>
+    [Collection("Msmq Collection")]
+    public class MessageCountServiceTests
     {
         public MessageCountServiceTests(MsmqFixture fixture)
         {

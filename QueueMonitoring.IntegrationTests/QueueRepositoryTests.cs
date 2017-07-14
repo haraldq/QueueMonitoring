@@ -9,7 +9,8 @@
     using Moq;
     using Xunit;
 
-    public class QueueRepositoryTests : IClassFixture<MsmqFixture>
+    [Collection("Msmq Collection")]
+    public class QueueRepositoryTests
     {
         public QueueRepositoryTests(MsmqFixture fixture)
         {
