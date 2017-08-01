@@ -1,5 +1,6 @@
 namespace QueueMonitoring.Mvvm.QueueGroupings
 {
+    using System;
     using System.Collections.ObjectModel;
     using System.Linq;
     using Library;
@@ -17,6 +18,7 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
         public MQueueViewModel(MQueue mQueue, IQueueRepository queueRepository)
         {
             _queueRepository = queueRepository;
+
             MessagesCount = mQueue.MessagesCount;
             PoisonMessagesCount = mQueue.PoisonMessagesCount;
             Name = mQueue.Name;
@@ -47,20 +49,20 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
             RebindSelectedMqueueMessages();
         }
 
-        private void RebindSelectedMqueueMessages()
+        public void RebindSelectedMqueueMessages()
         {
-            Messages.Clear();
-            PoisonMessages.Clear();
-            int index = 1;
-            foreach (var mqMessage in _queueRepository.MessagesFor(Path, SubqueuePath))
-            {
-                Messages.Add(new MqMessageViewModel(mqMessage, index++));
-            }
+            PopulateMessages(() => Messages, Path, SubqueuePath);
+            PopulateMessages(() => PoisonMessages, Path, SubqueuePath, SubQueueType.Poison);
+        }
 
-            index = 1;
-            foreach (var mqMessage in _queueRepository.MessagesFor(Path, SubqueuePath, SubQueueType.Poison))
+        private void PopulateMessages(Func<ObservableCollection<MqMessageViewModel>> f, string path, string subqueuePath, SubQueueType? subQueueType = null)
+        {
+            f().Clear();
+
+            var index = 1;
+            foreach (var mqMessage in _queueRepository.MessagesFor(path, subqueuePath, subQueueType))
             {
-                PoisonMessages.Add(new MqMessageViewModel(mqMessage, index++));
+                f().Add(new MqMessageViewModel(mqMessage, index++));
             }
         }
 

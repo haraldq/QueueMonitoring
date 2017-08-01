@@ -38,17 +38,19 @@
             if (queue.MessagesCount <= 0 && queue.PoisonMessagesCount <= 0)
                 return;
             
-            PopulateMessages(vm, () => queue.Messages,  queue.Path, queue.SubqueuePath);
-            PopulateMessages(vm, () => queue.PoisonMessages, queue.Path, queue.SubqueuePath, SubQueueType.Poison);
+            queue.RebindSelectedMqueueMessages();
+
+            //PopulateMessages(vm, () => queue.Messages,  queue.Path, queue.SubqueuePath);
+            //PopulateMessages(vm, () => queue.PoisonMessages, queue.Path, queue.SubqueuePath, SubQueueType.Poison);
         }
 
-        private static void PopulateMessages(QueueGroupingViewModel vm, Func<ObservableCollection<MqMessageViewModel>> f,string path, string subqueuePath, SubQueueType? subQueueType = null)
-        {
-            int index = 1;
-            foreach (var mqMessage in vm.QueueRepository.MessagesFor(path,subqueuePath,subQueueType))
-            {
-                f().Add(new MqMessageViewModel(mqMessage, index++));
-            }
-        }
+        //private static void PopulateMessages(QueueGroupingViewModel vm, Func<ObservableCollection<MqMessageViewModel>> f,string path, string subqueuePath, SubQueueType? subQueueType = null)
+        //{
+        //    int index = 1;
+        //    foreach (var mqMessage in vm.QueueRepository.MessagesFor(path,subqueuePath,subQueueType))
+        //    {
+        //        f().Add(new MqMessageViewModel(mqMessage, index++));
+        //    }
+        //}
     }
 }
