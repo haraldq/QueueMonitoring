@@ -1,7 +1,7 @@
 ﻿namespace QueueMonitoring.Mvvm.QueueGroupings
 {
+    using System;
     using System.Collections.ObjectModel;
-    using System.Linq;
     using System.Windows;
     using System.Windows.Controls;
     using Library;
@@ -20,6 +20,9 @@
         {
             var vm = DataContext as QueueGroupingViewModel;
 
+            if (vm == null)
+                return;
+
             var grouping = e.NewValue as MqGroupingViewModel;
             if (grouping != null)
             {
@@ -28,22 +31,23 @@
             }
 
             var queue = e.NewValue as MQueueViewModel;
-            if (queue != null)
+            if (queue == null)
+                return;
+
+            vm.SelectedGrouping.SelectedMQueue = queue;
+            if (queue.MessagesCount <= 0 && queue.PoisonMessagesCount <= 0)
+                return;
+            
+            PopulateMessages(vm, () => queue.Messages,  queue.Path, queue.SubqueuePath);
+            PopulateMessages(vm, () => queue.PoisonMessages, queue.Path, queue.SubqueuePath, SubQueueType.Poison);
+        }
+
+        private static void PopulateMessages(QueueGroupingViewModel vm, Func<ObservableCollection<MqMessageViewModel>> f,string path, string subqueuePath, SubQueueType? subQueueType = null)
+        {
+            int index = 1;
+            foreach (var mqMessage in vm.QueueRepository.MessagesFor(path,subqueuePath,subQueueType))
             {
-                vm.SelectedGrouping.SelectedMQueue = queue;
-                if (queue.MessagesCount > 0 || queue.PoisonMessagesCount > 0)
-                {
-                    int index = 1;
-                    foreach (var mqMessage in vm.QueueRepository.MessagesFor(queue.Path, queue.SubqueuePath))//, SubQueueType.Poison))
-                    {
-                        queue.Messages.Add(new MqMessageViewModel(mqMessage, index++));
-                    }
-                    index = 1;
-                    foreach (var mqMessage in vm.QueueRepository.MessagesFor(queue.Path, queue.SubqueuePath, SubQueueType.Poison))
-                    {
-                        queue.PoisonMessages.Add(new MqMessageViewModel(mqMessage, index++));
-                    }
-                }
+                f().Add(new MqMessageViewModel(mqMessage, index++));
             }
         }
     }

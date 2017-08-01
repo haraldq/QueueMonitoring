@@ -1,18 +1,22 @@
 namespace QueueMonitoring.Mvvm.QueueGroupings
 {
     using System.Collections.ObjectModel;
+    using System.Linq;
     using Library;
 
     public class MQueueViewModel : ViewModelBase
     {
+        private readonly IQueueRepository _queueRepository;
         private ObservableCollection<MqMessageViewModel> _messages;
-
         private ObservableCollection<MqMessageViewModel> _poisonMessages;
-
         private MqMessageViewModel _selectedMessage;
 
-        public MQueueViewModel(MQueue mQueue)
+        public RelayCommand MoveToPoisonQueueCommand { get; }
+        public RelayCommand MoveToDefaultQueueCommand { get; }
+
+        public MQueueViewModel(MQueue mQueue, IQueueRepository queueRepository)
         {
+            _queueRepository = queueRepository;
             MessagesCount = mQueue.MessagesCount;
             PoisonMessagesCount = mQueue.PoisonMessagesCount;
             Name = mQueue.Name;
@@ -20,6 +24,44 @@ namespace QueueMonitoring.Mvvm.QueueGroupings
             PoisonMessages = new ObservableCollection<MqMessageViewModel>();
             Path = mQueue.Path;
             SubqueuePath = mQueue.SubQueuePath(SubQueueType.Poison);
+
+            MoveToPoisonQueueCommand = new RelayCommand(MoveToPoisonQueue);
+            MoveToDefaultQueueCommand = new RelayCommand(MoveToDefaultQueue);
+        }
+
+        private void MoveToPoisonQueue()
+        {
+            var selectedMessages = Messages.Where(x => x.IsSelected).Select(x => x.InternalMessageId);
+
+            _queueRepository.MoveToSubqueue(Path, SubQueueType.Poison, selectedMessages);
+
+            RebindSelectedMqueueMessages();
+        }
+
+        private void MoveToDefaultQueue()
+        {
+            var selectedMessages = PoisonMessages.Where(x => x.IsSelected).Select(x => x.InternalMessageId);
+
+            _queueRepository.MoveFromSubqueue(Path, SubQueueType.Poison, selectedMessages);
+
+            RebindSelectedMqueueMessages();
+        }
+
+        private void RebindSelectedMqueueMessages()
+        {
+            Messages.Clear();
+            PoisonMessages.Clear();
+            int index = 1;
+            foreach (var mqMessage in _queueRepository.MessagesFor(Path, SubqueuePath))
+            {
+                Messages.Add(new MqMessageViewModel(mqMessage, index++));
+            }
+
+            index = 1;
+            foreach (var mqMessage in _queueRepository.MessagesFor(Path, SubqueuePath, SubQueueType.Poison))
+            {
+                PoisonMessages.Add(new MqMessageViewModel(mqMessage, index++));
+            }
         }
 
         public string Name { get; }

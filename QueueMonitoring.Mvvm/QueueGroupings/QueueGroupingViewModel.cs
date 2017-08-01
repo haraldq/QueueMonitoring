@@ -3,7 +3,6 @@
     using System.Collections.ObjectModel;
     using System.ComponentModel;
     using System.Diagnostics;
-    using System.Diagnostics.Eventing.Reader;
     using System.Linq;
     using System.Windows;
     using Library;
@@ -19,9 +18,6 @@
             if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
 
             QueueRepository = new QueueRepository(new MessageCountService());
-
-            MoveToPoisonQueueCommand = new RelayCommand(MoveToPoisonQueue);
-            MoveToDefaultQueueCommand = new RelayCommand(MoveToDefaultQueue);
         }
 
         public async void LoadQueues()
@@ -30,7 +26,7 @@
             IsLoading = true;
 
             var mqGroupings = await QueueRepository.GetGroupingsAsync();
-            QueueGroupings = new ObservableCollection<MqGroupingViewModel>(mqGroupings.ToList().Select(x => new MqGroupingViewModel(x)));
+            QueueGroupings = new ObservableCollection<MqGroupingViewModel>(mqGroupings.ToList().Select(x => new MqGroupingViewModel(x, QueueRepository)));
 
             _stopwatch.Stop();
 
@@ -38,49 +34,8 @@
             LoadTime = $"Time loading: {_stopwatch.ElapsedMilliseconds} ms";
         }
 
-
-        private void MoveToPoisonQueue()
-        {
-            var selectedMQueue = SelectedGrouping.SelectedMQueue;
-            var selectedMessages = selectedMQueue.Messages.Where(x => x.IsSelected).Select(x => x.InternalMessageId);
-
-            QueueRepository.MoveToSubqueue(selectedMQueue.Path, SubQueueType.Poison, selectedMessages);
-
-            RebindSelectedMqueueMessages();
-        }
-
-        private void MoveToDefaultQueue()
-        {
-            var selectedMQueue = SelectedGrouping.SelectedMQueue;
-            var selectedMessages = selectedMQueue.PoisonMessages.Where(x => x.IsSelected).Select(x => x.InternalMessageId);
-
-            QueueRepository.MoveFromSubqueue(selectedMQueue.Path, SubQueueType.Poison, selectedMessages);
-
-            RebindSelectedMqueueMessages();
-        }
-
-        private void RebindSelectedMqueueMessages()
-        {
-            SelectedGrouping.SelectedMQueue.Messages.Clear();
-            SelectedGrouping.SelectedMQueue.PoisonMessages.Clear();
-            int index = 1;
-            foreach (var mqMessage in QueueRepository.MessagesFor(SelectedGrouping.SelectedMQueue.Path, SelectedGrouping.SelectedMQueue.SubqueuePath))
-            {
-                SelectedGrouping.SelectedMQueue.Messages.Add(new MqMessageViewModel(mqMessage, index++));
-            }
-
-            index = 1;
-            foreach (var mqMessage in QueueRepository.MessagesFor(SelectedGrouping.SelectedMQueue.Path, SelectedGrouping.SelectedMQueue.SubqueuePath, SubQueueType.Poison))
-            {
-                SelectedGrouping.SelectedMQueue.PoisonMessages.Add(new MqMessageViewModel(mqMessage, index++));
-            }
-        }
-
         public IQueueRepository QueueRepository { get; }
-
-        public RelayCommand MoveToPoisonQueueCommand { get; }
-        public RelayCommand MoveToDefaultQueueCommand { get;  }
-
+        
         private ObservableCollection<MqGroupingViewModel> _queueGroupings;
         public ObservableCollection<MqGroupingViewModel> QueueGroupings
         {

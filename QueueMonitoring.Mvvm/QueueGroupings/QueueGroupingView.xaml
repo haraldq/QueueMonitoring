@@ -88,7 +88,7 @@
                     </Style>
                 </ListView.ItemContainerStyle>
             </ListView>
-            <Button  Grid.Row="1" Grid.Column="0" Content="Move to poison queue" Command="{Binding MoveToPoisonQueueCommand}"/>
+            <Button  Grid.Row="1" Grid.Column="0" Content="Move to poison queue" Command="{Binding SelectedGrouping.SelectedMQueue.MoveToPoisonQueueCommand}"/>
         </Grid>
         <Grid Grid.Row="1" Grid.Column="1">
             <Grid.RowDefinitions>
@@ -112,7 +112,7 @@
                     </Style>
                 </ListView.ItemContainerStyle>
             </ListView>
-            <Button  Grid.Row="1" Grid.Column="0" Content="Move to default queue" Command="{Binding MoveToDefaultQueueCommand}"/>
+            <Button  Grid.Row="1" Grid.Column="0" Content="Move to default queue" Command="{Binding SelectedGrouping.SelectedMQueue.MoveToDefaultQueueCommand}"/>
         </Grid>
         <StackPanel Grid.Row="2" Grid.Column="1">
             <!--<TextBlock  Text="{Binding SelectedGrouping.SelectedMQueue.SelectedMessage.Body}"/>-->
